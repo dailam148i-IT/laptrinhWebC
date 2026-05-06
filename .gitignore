@@ -1,0 +1,25 @@
+# .gitignore for ASP.NET Core
+bin/
+obj/
+.vs/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Uploaded files
+QLSYLL/wwwroot/uploads/avatars/*
+!QLSYLL/wwwroot/uploads/avatars/.gitkeep
+QLSYLL/wwwroot/uploads/documents/*
+!QLSYLL/wwwroot/uploads/documents/.gitkeep
+
+# App Settings
+QLSYLL/appsettings.Development.json
+
+# Local DB
+*.mdf
+*.ldf
+
+# Logs
+*.log

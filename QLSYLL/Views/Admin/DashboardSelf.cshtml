@@ -1,0 +1,31 @@
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    var resume = ViewBag.Resume;
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Dashboard cá nhân</h1>
+        <p class="page-subtitle">@resume.FullName - @resume.Position.Name</p>
+    </div>
+    <a asp-controller="Resume" asp-action="SelfEdit" class="btn btn-primary"><i class="bi bi-pencil-square"></i> Cập nhật hồ sơ</a>
+</div>
+
+<div class="card mb-24">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div><strong>Phòng ban:</strong> @resume.Department.Name</div>
+        <div><strong>Chức vụ:</strong> @resume.Position.Name</div>
+        <div><strong>Điện thoại:</strong> @resume.Phone</div>
+        <div><strong>Trạng thái hồ sơ:</strong> @resume.Status</div>
+    </div>
+</div>
+
+<div class="card">
+    <h2 class="card-title">Thông báo mới nhất</h2>
+    <ul>
+    @foreach (var item in ViewBag.RecentAnnouncements)
+    {
+        <li><strong>@item.Title</strong> - @item.CreatedAt.ToString("dd/MM/yyyy")</li>
+    }
+    </ul>
+</div>

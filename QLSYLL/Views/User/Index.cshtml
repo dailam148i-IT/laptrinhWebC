@@ -1,0 +1,96 @@
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Quản lý tài khoản</h1>
+        <p class="page-subtitle">Danh sách tài khoản người dùng trong hệ thống</p>
+    </div>
+    <a asp-action="Create" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Tạo tài khoản</a>
+</div>
+
+<div class="data-table-wrapper">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>STT</th>
+                <th>Tên đăng nhập</th>
+                <th>Họ và tên</th>
+                <th>Email</th>
+                <th>Vai trò</th>
+                <th>Trạng thái</th>
+                <th>Ngày tạo</th>
+                <th style="text-align: center;">Thao tác</th>
+            </tr>
+        </thead>
+        <tbody>
+            @{ int stt = 1; }
+            @foreach (var u in ViewBag.Users)
+            {
+                <tr>
+                    <td>@(stt++)</td>
+                    <td><code style="background: var(--primary-light); padding: 2px 8px; border-radius: 4px; color: var(--primary); font-size: 0.929rem;">@u.Username</code></td>
+                    <td>
+                        <div class="d-flex align-center gap-8">
+                            <div class="avatar">@u.FullName.ToString().Substring(0, 1)</div>
+                            <span style="font-weight: 500;">@u.FullName</span>
+                        </div>
+                    </td>
+                    <td>@u.Email</td>
+                    <td>
+                        @if (u.Role == "SA")
+                        {
+                            <span class="badge badge-primary"><i class="bi bi-shield-check" style="margin-right:4px;"></i>SA</span>
+                        }
+                        else if (u.Role == "HR")
+                        {
+                            <span class="badge badge-info"><i class="bi bi-person-workspace" style="margin-right:4px;"></i>HR</span>
+                        }
+                        else if (u.Role == "Manager")
+                        {
+                            <span class="badge badge-warning"><i class="bi bi-diagram-3" style="margin-right:4px;"></i>Manager</span>
+                        }
+                        else
+                        {
+                            <span class="badge badge-info"><i class="bi bi-person" style="margin-right:4px;"></i>Nhân viên</span>
+                        }
+                    </td>
+                    <td>
+                        @if (u.IsActive)
+                        {
+                            <span class="badge badge-success"><i class="bi bi-check-circle" style="margin-right:4px;"></i>Hoạt động</span>
+                        }
+                        else
+                        {
+                            <span class="badge badge-error"><i class="bi bi-lock" style="margin-right:4px;"></i>Bị khóa</span>
+                        }
+                    </td>
+                    <td>@u.CreatedAt</td>
+                    <td style="text-align: center;">
+                        <div class="d-flex gap-8" style="justify-content: center;">
+                            <a asp-action="Edit" asp-route-id="@u.Id" class="btn btn-ghost btn-sm" title="Sửa"><i class="bi bi-pencil-square"></i></a>
+                            <form asp-action="ToggleActive" asp-route-id="@u.Id" method="post" style="display:inline;">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-ghost btn-sm" title="@(u.IsActive ? "Khóa" : "Mở khóa")">
+                                    <i class="bi @(u.IsActive ? "bi-lock" : "bi-unlock")"></i>
+                                </button>
+                            </form>
+                            <form asp-action="ResetPassword" asp-route-id="@u.Id" method="post" style="display:inline;">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-ghost btn-sm" title="Reset mật khẩu">
+                                    <i class="bi bi-key"></i>
+                                </button>
+                            </form>
+                            <form asp-action="Delete" asp-route-id="@u.Id" method="post" style="display:inline;"
+                                  onsubmit="return confirm('Bạn có chắc muốn xóa tài khoản này?');">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-ghost btn-sm text-error" title="Xóa"><i class="bi bi-trash3"></i></button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

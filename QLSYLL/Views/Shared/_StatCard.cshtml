@@ -1,0 +1,27 @@
+@* Partial View: _StatCard.cshtml — sử dụng Bootstrap Icons *@
+@{
+    var icon = ViewData["Icon"]?.ToString() ?? "bi-bar-chart";
+    var color = ViewData["Color"]?.ToString() ?? "blue";
+    var number = ViewData["Number"]?.ToString() ?? "0";
+    var label = ViewData["Label"]?.ToString() ?? "";
+    var change = ViewData["Change"]?.ToString() ?? "";
+    var changeType = ViewData["ChangeType"]?.ToString() ?? "";
+}
+
+<div class="stat-card">
+    <div class="stat-icon @color">
+        <i class="bi @icon"></i>
+    </div>
+    <div class="stat-info">
+        <div class="stat-number">@number</div>
+        <div class="stat-label">@label</div>
+        @if (!string.IsNullOrEmpty(change))
+        {
+            <div class="stat-change @changeType">
+                @if (changeType == "up") { <i class="bi bi-arrow-up-short"></i> }
+                @if (changeType == "down") { <i class="bi bi-arrow-down-short"></i> }
+                @change
+            </div>
+        }
+    </div>
+</div>

@@ -1,0 +1,225 @@
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    var resume = ViewBag.Resume;
+    var education = ViewBag.PrimaryEducation;
+    var skillsText = ViewBag.SkillsText as string ?? "";
+    var documents = resume.EmployeeDocuments;
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Hồ sơ cá nhân</h1>
+        <p class="page-subtitle">Chỉ chỉnh sửa các trường được phép</p>
+    </div>
+</div>
+
+<div class="card">
+    <div style="display:flex;justify-content:center;margin-bottom:24px;">
+        <div style="width:180px;padding:20px;border:1px dashed var(--hairline);border-radius:20px;background:var(--surface);text-align:center;">
+            @if (!string.IsNullOrWhiteSpace((string?)resume.AvatarPath))
+            {
+                <img src="@resume.AvatarPath" alt="@resume.FullName" style="width:112px;height:112px;border-radius:50%;object-fit:cover;display:block;margin:0 auto 12px;" />
+            }
+            else
+            {
+                <div class="avatar avatar-lg" style="width:112px;height:112px;font-size:2rem;margin:0 auto 12px;">@resume.FullName.ToString().Substring(0, 1)</div>
+            }
+            <div style="font-weight:600;">Ảnh đại diện</div>
+            <div class="text-muted" style="font-size:0.857rem;margin-top:4px;">JPG/PNG tối đa 2MB</div>
+        </div>
+    </div>
+
+    <form asp-action="UploadAvatar" method="post" enctype="multipart/form-data" style="margin-bottom:24px;">
+        @Html.AntiForgeryToken()
+        <div class="d-flex gap-12 align-center">
+            <input type="file" name="avatarFile" class="form-control" accept=".jpg,.jpeg,.png" />
+            <button type="submit" class="btn btn-secondary"><i class="bi bi-upload"></i> Tải ảnh</button>
+        </div>
+    </form>
+
+    <form asp-action="SelfEdit" method="post">
+        @Html.AntiForgeryToken()
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+            <div class="form-group">
+                <label class="form-label">Họ và tên</label>
+                <input class="form-control" value="@resume.FullName" disabled />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Phòng ban</label>
+                <input class="form-control" value="@resume.Department.Name" disabled />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Số điện thoại</label>
+                <input name="Phone" class="form-control" value="@resume.Phone" />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Email cá nhân</label>
+                <input name="PersonalEmail" class="form-control" value="@resume.PersonalEmail" />
+            </div>
+            <div class="form-group" style="grid-column:1/-1;">
+                <label class="form-label">Chỗ ở hiện tại</label>
+                <input name="CurrentAddress" class="form-control" value="@resume.CurrentAddress" />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Trình độ phổ thông</label>
+                <input name="GeneralEducationLevel" class="form-control" value="@education?.GeneralEducationLevel" />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Trình độ</label>
+                <input name="EducationLevel" class="form-control" value="@education?.EducationLevel" />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Chuyên ngành</label>
+                <input name="Major" class="form-control" value="@education?.Major" />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Trường đào tạo</label>
+                <input name="SchoolName" class="form-control" value="@education?.SchoolName" />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Năm tốt nghiệp</label>
+                <input name="GraduationYear" class="form-control" value="@education?.GraduationYear" />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Xếp loại</label>
+                <input name="Ranking" class="form-control" value="@education?.Ranking" />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Ngoại ngữ</label>
+                <input name="ForeignLanguage" class="form-control" value="@education?.ForeignLanguage" />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Tin học</label>
+                <input name="ITLevel" class="form-control" value="@education?.ITLevel" />
+            </div>
+            <div class="form-group" style="grid-column:1/-1;">
+                <label class="form-label">Kỹ năng</label>
+                <textarea name="Skills" class="form-control editor" rows="4">@skillsText</textarea>
+            </div>
+        </div>
+        <div class="d-flex gap-12" style="justify-content:flex-end;margin-top:24px;">
+            <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Lưu thay đổi</button>
+        </div>
+    </form>
+</div>
+
+<div class="card" style="margin-top:24px;">
+    <h2 class="card-title">Tài liệu hồ sơ</h2>
+    <form asp-action="UploadDocument" method="post" enctype="multipart/form-data" style="margin-bottom:20px;">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="returnAction" value="SelfEdit" />
+        <div style="display:grid;grid-template-columns:1fr 180px 1fr auto;gap:12px;align-items:end;">
+            <div class="form-group">
+                <label class="form-label">Tên tài liệu</label>
+                <input type="text" name="title" class="form-control" placeholder="CV, SYLL, bằng cấp..." />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Loại</label>
+                <select name="category" class="form-control">
+                    <option value="CV">CV</option>
+                    <option value="SYLL">SYLL</option>
+                    <option value="BangCap">Bằng cấp</option>
+                    <option value="Khac">Khác</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Tệp đính kèm</label>
+                <input type="file" name="documentFile" class="form-control" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" required />
+            </div>
+            <button type="submit" class="btn btn-secondary"><i class="bi bi-upload"></i> Tải lên</button>
+        </div>
+    </form>
+
+    @if (documents.Count > 0)
+    {
+        <div class="data-table-wrapper">
+            <table class="data-table">
+                <thead>
+                    <tr><th>Tên</th><th>Loại</th><th>Tệp</th><th>Ngày tải</th><th></th></tr>
+                </thead>
+                <tbody>
+                @foreach (var item in documents)
+                {
+                    <tr>
+                        <td>@item.Title</td>
+                        <td>@item.Category</td>
+                        <td><a href="@item.FilePath" target="_blank">@item.FileName</a></td>
+                        <td>@item.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td style="text-align:right;">
+                            <form asp-action="DeleteDocument" method="post">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@item.Id" />
+                                <input type="hidden" name="returnAction" value="SelfEdit" />
+                                <button type="submit" class="btn btn-danger btn-sm"><i class="bi bi-trash"></i> Xóa</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <p class="text-muted">Chưa có tài liệu đính kèm.</p>
+    }
+</div>
+
+<div class="card" style="margin-top:24px;">
+    <h2 class="card-title">Quá trình công tác</h2>
+    <div class="data-table-wrapper">
+        <table class="data-table">
+            <thead>
+                <tr><th>Công ty</th><th>Chức danh</th><th>Bắt đầu</th><th>Kết thúc</th><th>Mô tả</th></tr>
+            </thead>
+            <tbody>
+            @foreach (var item in resume.WorkHistories)
+            {
+                <tr>
+                    <td>@item.CompanyName</td>
+                    <td>@item.PositionTitle</td>
+                    <td>@item.StartDate.ToString("dd/MM/yyyy")</td>
+                    <td>@(item.EndDate?.ToString("dd/MM/yyyy") ?? "Hiện tại")</td>
+                    <td>@item.Description</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+
+    <form asp-action="AddWorkHistory" method="post" style="margin-top:20px;">
+        @Html.AntiForgeryToken()
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+            <div class="form-group">
+                <label class="form-label">Công ty</label>
+                <input name="CompanyName" class="form-control" required />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Chức danh</label>
+                <input name="PositionTitle" class="form-control" required />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Ngày bắt đầu</label>
+                <input name="StartDate" type="date" class="form-control" required />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Ngày kết thúc</label>
+                <input name="EndDate" type="date" class="form-control" />
+            </div>
+            <div class="form-group" style="grid-column:1/-1;">
+                <label class="form-label">Mô tả</label>
+                <textarea name="Description" class="form-control editor" rows="3"></textarea>
+            </div>
+        </div>
+        <div class="d-flex gap-12" style="justify-content:flex-end;">
+            <button type="submit" class="btn btn-secondary"><i class="bi bi-plus-lg"></i> Thêm công tác</button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+    <script>
+        tinymce.init({ selector: '.editor', height: 180, menubar: false });
+    </script>
+}

@@ -1,0 +1,97 @@
+@* ViewComponent View: Sidebar — sử dụng Bootstrap Icons (không dùng emoji) *@
+@{
+    var activeMenu = ViewBag.ActiveMenu as string ?? "";
+    var role = ViewBag.Role as string ?? "";
+    bool isSuperAdmin = role == "SA";
+    bool isHr = role == "HR";
+    bool canManageUsers = isSuperAdmin;
+    bool canManageCatalogs = isSuperAdmin || isHr;
+}
+
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+        <div class="logo-icon">5</div>
+        <div class="logo-text">
+            QLSYLL
+            <span>Quản lý sơ yếu lý lịch</span>
+        </div>
+    </div>
+
+    <nav class="sidebar-nav">
+        <div class="nav-section-label">Chính</div>
+
+        <a asp-controller="Admin" asp-action="@(role == "Manager" ? "DashboardDept" : role == "Employee" ? "DashboardSelf" : "Dashboard")"
+           class="nav-item @(activeMenu == "dashboard" ? "active" : "")">
+            <i class="bi bi-grid-1x2"></i>
+            Dashboard
+        </a>
+
+        <a asp-controller="Resume" asp-action="@(role == "Employee" ? "SelfEdit" : "Index")"
+           class="nav-item @(activeMenu == "resume" || activeMenu == "profile" ? "active" : "")">
+            <i class="bi bi-file-earmark-person"></i>
+            @(role == "Employee" || role == "Manager" ? "Hồ sơ cá nhân" : "Hồ sơ SYLL")
+        </a>
+
+        @if (canManageUsers)
+        {
+            <a asp-controller="User" asp-action="Index"
+               class="nav-item @(activeMenu == "user" ? "active" : "")">
+                <i class="bi bi-people"></i>
+                Tài khoản
+            </a>
+        }
+
+        <a asp-controller="Contact" asp-action="Index"
+           class="nav-item @(activeMenu == "contact" ? "active" : "")">
+            <i class="bi bi-person-lines-fill"></i>
+            Danh bạ
+        </a>
+
+        <div class="nav-section-label">Danh mục</div>
+
+        @if (canManageCatalogs)
+        {
+            <a asp-controller="Department" asp-action="Index"
+               class="nav-item @(activeMenu == "department" ? "active" : "")">
+                <i class="bi bi-building"></i>
+                Phòng ban
+            </a>
+
+            <a asp-controller="Position" asp-action="Index"
+               class="nav-item @(activeMenu == "position" ? "active" : "")">
+                <i class="bi bi-briefcase"></i>
+                Chức vụ
+            </a>
+        }
+
+        <a asp-controller="Announcement" asp-action="Index"
+           class="nav-item @(activeMenu == "announcement" ? "active" : "")">
+            <i class="bi bi-megaphone"></i>
+            Thông báo
+        </a>
+
+        @if (isSuperAdmin)
+        {
+            <a asp-controller="AuditLog" asp-action="Index"
+               class="nav-item @(activeMenu == "auditlog" ? "active" : "")">
+                <i class="bi bi-clock-history"></i>
+                Audit Log
+            </a>
+        }
+
+        <div class="nav-section-label">Cài đặt</div>
+
+        <a asp-controller="Account" asp-action="ChangePassword"
+           class="nav-item @(activeMenu == "changepassword" ? "active" : "")">
+            <i class="bi bi-key"></i>
+            Đổi mật khẩu
+        </a>
+    </nav>
+
+    <div class="sidebar-footer">
+        <a asp-controller="Account" asp-action="Logout" class="nav-item">
+            <i class="bi bi-box-arrow-left"></i>
+            Đăng xuất
+        </a>
+    </div>
+</aside>

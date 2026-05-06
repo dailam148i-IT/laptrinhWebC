@@ -1,0 +1,33 @@
+@* Partial View: _Notification.cshtml — sử dụng Bootstrap Icons *@
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success" id="alert-auto-dismiss">
+        <i class="bi bi-check-circle-fill"></i>
+        <span>@TempData["SuccessMessage"]</span>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-error" id="alert-auto-dismiss">
+        <i class="bi bi-x-circle-fill"></i>
+        <span>@TempData["ErrorMessage"]</span>
+    </div>
+}
+
+@if (TempData["WarningMessage"] != null)
+{
+    <div class="alert alert-warning" id="alert-auto-dismiss">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        <span>@TempData["WarningMessage"]</span>
+    </div>
+}
+
+@if (TempData["InfoMessage"] != null)
+{
+    <div class="alert alert-info" id="alert-auto-dismiss">
+        <i class="bi bi-info-circle-fill"></i>
+        <span>@TempData["InfoMessage"]</span>
+    </div>
+}

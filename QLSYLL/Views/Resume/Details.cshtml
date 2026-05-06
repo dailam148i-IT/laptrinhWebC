@@ -1,0 +1,358 @@
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    var r = ViewBag.Resume;
+    var canManageResumes = (bool)(ViewBag.CanManageResumes ?? false);
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Chi tiết hồ sơ</h1>
+        <p class="page-subtitle">Thông tin sơ yếu lý lịch nhân viên</p>
+    </div>
+    <div class="d-flex gap-8">
+        @if (canManageResumes)
+        {
+            <a asp-action="Edit" asp-route-id="@r.Id" class="btn btn-primary btn-sm">
+                <i class="bi bi-pencil-square"></i> Chỉnh sửa
+            </a>
+        }
+        <a asp-action="Index" class="btn btn-secondary btn-sm">
+            <i class="bi bi-arrow-left"></i> Quay lại
+        </a>
+    </div>
+</div>
+
+<style>
+    .resume-hero {
+        display: grid;
+        grid-template-columns: 320px 1fr;
+        gap: 0;
+    }
+
+    .resume-hero-media {
+        background: linear-gradient(160deg, #eef5ff 0%, #f7fbff 100%);
+        border-right: 1px solid var(--hairline);
+        min-height: 260px;
+        display: flex;
+        align-items: stretch;
+        justify-content: stretch;
+    }
+
+    .resume-hero-body {
+        padding: 32px;
+    }
+
+    .resume-hero-summary {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(220px, 1fr));
+        gap: 16px 24px;
+    }
+
+    .resume-detail-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 16px 24px;
+    }
+
+    .resume-hero-photo-frame {
+        width: 100%;
+        min-height: 260px;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: stretch;
+        justify-content: stretch;
+    }
+
+    .resume-hero-photo-frame img,
+    .resume-hero-photo-placeholder {
+        width: 100%;
+        height: 100%;
+        min-height: 260px;
+        display: block;
+    }
+
+    .resume-hero-photo-frame img {
+        object-fit: cover;
+    }
+
+    .resume-hero-photo-placeholder {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 4rem;
+        font-weight: 700;
+        color: var(--primary);
+        background: linear-gradient(180deg, rgba(59, 130, 246, 0.12), rgba(59, 130, 246, 0.2));
+    }
+
+    @@media (max-width: 1100px) {
+        .resume-detail-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @@media (max-width: 860px) {
+        .resume-hero {
+            grid-template-columns: 1fr;
+        }
+
+        .resume-hero-media {
+            border-right: 0;
+            border-bottom: 1px solid var(--hairline);
+            min-height: auto;
+        }
+
+        .resume-hero-body {
+            padding: 24px;
+        }
+    }
+
+    @@media (max-width: 640px) {
+        .resume-hero-summary,
+        .resume-detail-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+@{
+    string bc = "badge-success", bi2 = "bi-check-circle";
+    if (r.Status == "Chờ duyệt") { bc = "badge-warning"; bi2 = "bi-clock"; }
+    else if (r.Status == "Bị khóa") { bc = "badge-error"; bi2 = "bi-lock"; }
+}
+
+<div class="card mb-24" style="padding: 0; overflow: hidden;">
+    <div class="resume-hero">
+        <div class="resume-hero-media">
+            <div class="resume-hero-photo-frame">
+                @if (!string.IsNullOrWhiteSpace((string?)r.AvatarPath))
+                {
+                    <img src="@r.AvatarPath" alt="@r.FullName" />
+                }
+                else
+                {
+                    <div class="resume-hero-photo-placeholder">@r.FullName.ToString().Substring(0, 1)</div>
+                }
+            </div>
+        </div>
+
+        <div class="resume-hero-body">
+            <div style="display:flex;justify-content:space-between;gap:16px;align-items:flex-start;flex-wrap:wrap;margin-bottom:20px;">
+                <div>
+                    <h2 style="font-size:2rem;line-height:1.15;margin:0 0 8px;">@r.FullName</h2>
+                    <div style="font-size:1.05rem;font-weight:600;color:var(--primary);margin-bottom:6px;">@r.Position</div>
+                    <div class="text-muted">@r.Department</div>
+                </div>
+                <span class="badge @bc" style="align-self:flex-start;"><i class="bi @bi2" style="margin-right: 4px;"></i>@r.Status</span>
+            </div>
+
+            <div class="resume-hero-summary">
+                <div>
+                    <div class="text-muted" style="font-size:0.857rem;">Mã nhân viên</div>
+                    <div style="font-weight:700;margin-top:4px;">NV-@r.Id.ToString("D4")</div>
+                </div>
+                <div>
+                    <div class="text-muted" style="font-size:0.857rem;">Ngày vào làm</div>
+                    <div style="font-weight:700;margin-top:4px;">@r.JoinDate</div>
+                </div>
+                <div>
+                    <div class="text-muted" style="font-size:0.857rem;">Ngày sinh</div>
+                    <div style="font-weight:700;margin-top:4px;">@r.BirthDate</div>
+                </div>
+                <div>
+                    <div class="text-muted" style="font-size:0.857rem;">Giới tính</div>
+                    <div style="font-weight:700;margin-top:4px;">@r.Gender</div>
+                </div>
+                <div>
+                    <div class="text-muted" style="font-size:0.857rem;">Điện thoại</div>
+                    <div style="font-weight:700;margin-top:4px;">@r.Phone</div>
+                </div>
+                <div>
+                    <div class="text-muted" style="font-size:0.857rem;">Email công ty</div>
+                    <div style="font-weight:700;margin-top:4px;">@(r.CompanyEmail ?? "-")</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div>
+    <div class="card mb-24">
+        <h2 class="card-title"><i class="bi bi-person-vcard" style="margin-right: 8px;"></i>Thông tin cá nhân</h2>
+        <div class="resume-detail-grid">
+            <div><span class="text-muted" style="font-size:0.857rem;">Tên gọi khác</span><p style="font-weight:500; margin-top: 4px;">@(r.AliasName ?? "-")</p></div>
+            <div><span class="text-muted" style="font-size:0.857rem;">Tình trạng hôn nhân</span><p style="font-weight:500; margin-top: 4px;">@(r.MaritalStatus ?? "-")</p></div>
+            <div><span class="text-muted" style="font-size:0.857rem;">Nơi sinh</span><p style="font-weight:500; margin-top: 4px;">@(r.BirthPlace ?? "-")</p></div>
+            <div><span class="text-muted" style="font-size:0.857rem;">Quê quán</span><p style="font-weight:500; margin-top: 4px;">@(r.Hometown ?? "-")</p></div>
+            <div><span class="text-muted" style="font-size:0.857rem;">Hộ khẩu thường trú</span><p style="font-weight:500; margin-top: 4px;">@(r.PermanentAddress ?? "-")</p></div>
+            <div><span class="text-muted" style="font-size:0.857rem;">Chỗ ở hiện tại</span><p style="font-weight:500; margin-top: 4px;">@(r.CurrentAddress ?? "-")</p></div>
+            <div><span class="text-muted" style="font-size:0.857rem;">Email cá nhân</span><p style="font-weight:500; margin-top: 4px;">@(r.PersonalEmail ?? "-")</p></div>
+            <div><span class="text-muted" style="font-size:0.857rem;">Email công ty</span><p style="font-weight:500; margin-top: 4px;">@(r.CompanyEmail ?? "-")</p></div>
+        </div>
+    </div>
+
+    <div class="card mb-24">
+        <h2 class="card-title"><i class="bi bi-briefcase" style="margin-right: 8px;"></i>Thông tin công việc</h2>
+        <div class="resume-detail-grid">
+            <div><span class="text-muted" style="font-size:0.857rem;">Phòng ban</span><p style="font-weight:500; margin-top: 4px;">@r.Department</p></div>
+            <div><span class="text-muted" style="font-size:0.857rem;">Chức vụ</span><p style="font-weight:500; margin-top: 4px;">@r.Position</p></div>
+            <div><span class="text-muted" style="font-size:0.857rem;">Ngày vào làm</span><p style="font-weight:500; margin-top: 4px;">@r.JoinDate</p></div>
+            <div><span class="text-muted" style="font-size:0.857rem;">Mã nhân viên</span><p style="font-weight:500; margin-top: 4px;">NV-@r.Id.ToString("D4")</p></div>
+        </div>
+    </div>
+
+    <div class="card mb-24">
+        <h2 class="card-title"><i class="bi bi-shield-check" style="margin-right: 8px;"></i>Pháp lý và phúc lợi</h2>
+        <div class="resume-detail-grid">
+            <div><span class="text-muted" style="font-size:0.857rem;">CCCD / CMND</span><p style="font-weight:500; margin-top: 4px;">@(r.IdentityNumber ?? "-")</p></div>
+            <div><span class="text-muted" style="font-size:0.857rem;">Ngày cấp</span><p style="font-weight:500; margin-top: 4px;">@(r.IdentityIssuedDate ?? "-")</p></div>
+            <div><span class="text-muted" style="font-size:0.857rem;">Nơi cấp</span><p style="font-weight:500; margin-top: 4px;">@(r.IdentityIssuedPlace ?? "-")</p></div>
+            <div><span class="text-muted" style="font-size:0.857rem;">Dân tộc</span><p style="font-weight:500; margin-top: 4px;">@(r.Ethnicity ?? "-")</p></div>
+            <div><span class="text-muted" style="font-size:0.857rem;">Tôn giáo</span><p style="font-weight:500; margin-top: 4px;">@(r.Religion ?? "-")</p></div>
+            <div><span class="text-muted" style="font-size:0.857rem;">Mã số thuế</span><p style="font-weight:500; margin-top: 4px;">@(r.TaxCode ?? "-")</p></div>
+            <div><span class="text-muted" style="font-size:0.857rem;">Sổ BHXH</span><p style="font-weight:500; margin-top: 4px;">@(r.SocialInsuranceNumber ?? "-")</p></div>
+            <div><span class="text-muted" style="font-size:0.857rem;">Số tài khoản</span><p style="font-weight:500; margin-top: 4px;">@(r.BankAccountNumber ?? "-")</p></div>
+            <div><span class="text-muted" style="font-size:0.857rem;">Ngân hàng</span><p style="font-weight:500; margin-top: 4px;">@(r.BankName ?? "-")</p></div>
+            <div><span class="text-muted" style="font-size:0.857rem;">Chi nhánh</span><p style="font-weight:500; margin-top: 4px;">@(r.BankBranch ?? "-")</p></div>
+        </div>
+    </div>
+
+    <div class="card mb-24">
+        <h2 class="card-title"><i class="bi bi-mortarboard" style="margin-right: 8px;"></i>Trình độ học vấn</h2>
+        <div class="resume-detail-grid">
+            <div><span class="text-muted" style="font-size:0.857rem;">Trình độ phổ thông</span><p style="font-weight:500; margin-top: 4px;">@(r.GeneralEducationLevel ?? "-")</p></div>
+            <div><span class="text-muted" style="font-size:0.857rem;">Trình độ chuyên môn</span><p style="font-weight:500; margin-top: 4px;">@(r.EducationLevel ?? "-")</p></div>
+            <div><span class="text-muted" style="font-size:0.857rem;">Trường</span><p style="font-weight:500; margin-top: 4px;">@(r.SchoolName ?? "-")</p></div>
+            <div><span class="text-muted" style="font-size:0.857rem;">Chuyên ngành</span><p style="font-weight:500; margin-top: 4px;">@(r.Major ?? "-")</p></div>
+            <div><span class="text-muted" style="font-size:0.857rem;">Năm tốt nghiệp</span><p style="font-weight:500; margin-top: 4px;">@(r.GraduationYear != null ? r.GraduationYear.ToString() : "-")</p></div>
+            <div><span class="text-muted" style="font-size:0.857rem;">Xếp loại</span><p style="font-weight:500; margin-top: 4px;">@(r.Ranking ?? "-")</p></div>
+            <div><span class="text-muted" style="font-size:0.857rem;">Ngoại ngữ</span><p style="font-weight:500; margin-top: 4px;">@(r.ForeignLanguage ?? "-")</p></div>
+            <div><span class="text-muted" style="font-size:0.857rem;">Tin học</span><p style="font-weight:500; margin-top: 4px;">@(r.ITLevel ?? "-")</p></div>
+        </div>
+    </div>
+
+    <div class="card mb-24">
+        <h2 class="card-title"><i class="bi bi-star" style="margin-right: 8px;"></i>Kỹ năng</h2>
+        <p>@(string.IsNullOrWhiteSpace((string?)r.Skills) ? "Chưa cập nhật kỹ năng." : r.Skills)</p>
+    </div>
+
+    <div class="card mb-24">
+        <h2 class="card-title"><i class="bi bi-paperclip" style="margin-right: 8px;"></i>Tài liệu hồ sơ</h2>
+        @if (r.Documents.Count > 0)
+        {
+            <div class="data-table-wrapper">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Tên</th>
+                            <th>Loại</th>
+                            <th>Tệp</th>
+                            <th>Ngày tải</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in r.Documents)
+                        {
+                            <tr>
+                                <td>@item.Title</td>
+                                <td>@item.Category</td>
+                                <td><a href="@item.FilePath" target="_blank">@item.FileName</a></td>
+                                <td>@item.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <p class="text-muted">Chưa có tài liệu đính kèm.</p>
+        }
+    </div>
+
+    <div class="card mb-24">
+        <h2 class="card-title"><i class="bi bi-clock-history" style="margin-right: 8px;"></i>Quá trình công tác</h2>
+        @if (r.WorkHistories.Count > 0)
+        {
+            <div class="data-table-wrapper">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Thời gian</th>
+                            <th>Công ty</th>
+                            <th>Chức danh</th>
+                            <th>Mô tả</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var work in r.WorkHistories)
+                        {
+                            <tr>
+                                <td>@work.StartDate.ToString("MM/yyyy") - @(work.EndDate?.ToString("MM/yyyy") ?? "Hiện tại")</td>
+                                <td>@work.CompanyName</td>
+                                <td>@work.PositionTitle</td>
+                                <td>@work.Description</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <p class="text-muted">Chưa có quá trình công tác.</p>
+        }
+    </div>
+
+    <div class="card mb-24">
+        <h2 class="card-title"><i class="bi bi-people" style="margin-right: 8px;"></i>Quan hệ gia đình</h2>
+        @if (r.FamilyMembers.Count > 0)
+        {
+            <div class="data-table-wrapper">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Quan hệ</th>
+                            <th>Họ tên</th>
+                            <th>Năm sinh</th>
+                            <th>Nghề nghiệp</th>
+                            <th>Nơi công tác</th>
+                            <th>Điện thoại</th>
+                            <th>Khẩn cấp</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var member in r.FamilyMembers)
+                        {
+                            <tr>
+                                <td>@member.Relationship</td>
+                                <td>@member.FullName</td>
+                                <td>@(member.BirthYear != null ? member.BirthYear.ToString() : "-")</td>
+                                <td>@(member.Occupation ?? "-")</td>
+                                <td>@(member.Workplace ?? "-")</td>
+                                <td>@(member.PhoneNumber ?? "-")</td>
+                                <td>@(member.IsEmergencyContact ? "Có" : "")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <p class="text-muted">Chưa có thông tin gia đình.</p>
+        }
+    </div>
+
+    <div class="card">
+        <h2 class="card-title"><i class="bi bi-building" style="margin-right: 8px;"></i>Thông tin Đoàn / Đảng</h2>
+        <div class="resume-detail-grid">
+            <div><span class="text-muted" style="font-size:0.857rem;">Ngày vào Đoàn</span><p style="font-weight:500; margin-top: 4px;">@(r.YouthUnionJoinDate ?? "-")</p></div>
+            <div><span class="text-muted" style="font-size:0.857rem;">Nơi kết nạp Đoàn</span><p style="font-weight:500; margin-top: 4px;">@(r.YouthUnionJoinPlace ?? "-")</p></div>
+            <div><span class="text-muted" style="font-size:0.857rem;">Ngày vào Đảng</span><p style="font-weight:500; margin-top: 4px;">@(r.CommunistPartyJoinDate ?? "-")</p></div>
+            <div><span class="text-muted" style="font-size:0.857rem;">Nơi kết nạp Đảng</span><p style="font-weight:500; margin-top: 4px;">@(r.CommunistPartyJoinPlace ?? "-")</p></div>
+            <div><span class="text-muted" style="font-size:0.857rem;">Trạng thái Đảng</span><p style="font-weight:500; margin-top: 4px;">@(r.CommunistPartyStatus ?? "-")</p></div>
+        </div>
+    </div>
+</div>

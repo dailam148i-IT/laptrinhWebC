@@ -1,0 +1,70 @@
+@* Layout: _AdminLayout.cshtml
+   Admin Layout với Sidebar (ViewComponent) + Header (ViewComponent)
+   Dùng cho tất cả trang sau khi đăng nhập: Dashboard, CRUD, etc.
+*@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - QLSYLL</title>
+    <meta name="description" content="Hệ thống Quản lý Sơ yếu lý lịch — Five Member" />
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body>
+    <div class="admin-wrapper">
+        @* === SIDEBAR (ViewComponent) === *@
+        @await Component.InvokeAsync("Sidebar", new { activeMenu = ViewData["ActiveMenu"] ?? "" })
+
+        @* === Overlay cho mobile khi mở sidebar === *@
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+        @* === MAIN CONTENT === *@
+        <div class="main-content">
+            @* === HEADER (ViewComponent) === *@
+            @await Component.InvokeAsync("Header", new
+            {
+                breadcrumb = ViewData["Breadcrumb"] ?? "",
+                parentPage = ViewData["ParentPage"] ?? ""
+            })
+
+            @* === PAGE CONTENT === *@
+            <main class="page-content">
+                @* Notification Partial *@
+                @await Html.PartialAsync("_Notification")
+
+                @* Nội dung trang *@
+                @RenderBody()
+            </main>
+        </div>
+    </div>
+
+    @* === SCRIPTS === *@
+    <script>
+        // Toggle sidebar trên mobile
+        function toggleSidebar() {
+            var sidebar = document.getElementById('sidebar');
+            var overlay = document.getElementById('sidebarOverlay');
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('active');
+        }
+
+        // Auto dismiss alerts sau 5 giây
+        document.addEventListener('DOMContentLoaded', function () {
+            var alerts = document.querySelectorAll('#alert-auto-dismiss');
+            alerts.forEach(function (alert) {
+                setTimeout(function () {
+                    alert.style.transition = 'opacity 0.3s ease';
+                    alert.style.opacity = '0';
+                    setTimeout(function () { alert.remove(); }, 300);
+                }, 5000);
+            });
+        });
+    </script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

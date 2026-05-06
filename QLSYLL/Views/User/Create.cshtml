@@ -1,0 +1,48 @@
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Tạo tài khoản mới</h1>
+        <p class="page-subtitle">Thêm tài khoản người dùng vào hệ thống</p>
+    </div>
+    <a asp-action="Index" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Quay lại</a>
+</div>
+
+<div class="card" style="max-width: 600px;">
+    <form asp-action="Create" method="post">
+        @Html.AntiForgeryToken()
+
+        <div class="form-group">
+            <label class="form-label">Tên đăng nhập <span class="text-error">*</span></label>
+            <input type="text" name="Username" class="form-control" placeholder="Nhập tên đăng nhập" required />
+        </div>
+        <div class="form-group">
+            <label class="form-label">Họ và tên <span class="text-error">*</span></label>
+            <input type="text" name="FullName" class="form-control" placeholder="Nhập họ và tên" required />
+        </div>
+        <div class="form-group">
+            <label class="form-label">Email <span class="text-error">*</span></label>
+            <input type="email" name="Email" class="form-control" placeholder="example@email.com" required />
+        </div>
+        <div class="form-group">
+            <label class="form-label">Mật khẩu <span class="text-error">*</span></label>
+            <input type="password" name="Password" class="form-control" placeholder="Tối thiểu 6 ký tự" required minlength="6" />
+        </div>
+        <div class="form-group">
+            <label class="form-label">Vai trò</label>
+            <select name="Role" class="form-control">
+                @foreach (var role in ViewBag.Roles)
+                {
+                    <option value="@role">@role</option>
+                }
+            </select>
+        </div>
+
+        <div class="d-flex gap-12" style="justify-content: flex-end; margin-top: 24px;">
+            <a asp-action="Index" class="btn btn-secondary">Hủy</a>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Tạo tài khoản</button>
+        </div>
+    </form>
+</div>

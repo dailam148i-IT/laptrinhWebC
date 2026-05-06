@@ -1,0 +1,48 @@
+@* ViewComponent View: Header — sử dụng Bootstrap Icons *@
+@{
+    var breadcrumb = ViewBag.Breadcrumb as string ?? "";
+    var parentPage = ViewBag.ParentPage as string ?? "";
+    var userName = ViewBag.UserName as string ?? "User";
+    var userRole = ViewBag.UserRole as string ?? "";
+    var userInitial = ViewBag.UserInitial as string ?? "U";
+    int notifCount = ViewBag.NotificationCount ?? 0;
+}
+
+<header class="top-header">
+    <div class="header-left">
+        <button class="sidebar-toggle" onclick="toggleSidebar()" title="Toggle sidebar">
+            <i class="bi bi-list"></i>
+        </button>
+        <nav class="breadcrumb-nav">
+            <a href="/"><i class="bi bi-house-door"></i></a>
+            @if (!string.IsNullOrEmpty(parentPage))
+            {
+                <span class="separator">/</span>
+                <span>@parentPage</span>
+            }
+            @if (!string.IsNullOrEmpty(breadcrumb))
+            {
+                <span class="separator">/</span>
+                <span class="current">@breadcrumb</span>
+            }
+        </nav>
+    </div>
+
+    <div class="header-right">
+        <button class="header-icon-btn" title="Thông báo">
+            <i class="bi bi-bell"></i>
+            @if (notifCount > 0)
+            {
+                <span class="badge-dot"></span>
+            }
+        </button>
+
+        <div class="header-user">
+            <div class="header-avatar">@userInitial</div>
+            <div class="header-user-info">
+                <div class="header-user-name">@userName</div>
+                <div class="header-user-role">@userRole</div>
+            </div>
+        </div>
+    </div>
+</header>

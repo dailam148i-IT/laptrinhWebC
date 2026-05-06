@@ -1,0 +1,53 @@
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Quản lý phòng ban</h1>
+        <p class="page-subtitle">Danh sách phòng ban trong công ty</p>
+    </div>
+    <a asp-action="Create" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Thêm phòng ban</a>
+</div>
+
+<div class="data-table-wrapper">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>STT</th>
+                <th>Mã</th>
+                <th>Tên phòng ban</th>
+                <th>Trưởng phòng</th>
+                <th>Số nhân viên</th>
+                <th>Ngày tạo</th>
+                <th style="text-align: center;">Thao tác</th>
+            </tr>
+        </thead>
+        <tbody>
+            @{ int stt = 1; }
+            @foreach (var d in ViewBag.Departments)
+            {
+                <tr>
+                    <td>@(stt++)</td>
+                    <td><code style="background: var(--primary-light); padding: 2px 8px; border-radius: 4px; color: var(--primary);">@d.Code</code></td>
+                    <td style="font-weight: 500;">@d.Name</td>
+                    <td>@d.ManagerName</td>
+                    <td>
+                        <span class="badge badge-info">@d.EmployeeCount người</span>
+                    </td>
+                    <td>@d.CreatedAt</td>
+                    <td style="text-align: center;">
+                        <div class="d-flex gap-8" style="justify-content: center;">
+                            <a asp-action="Edit" asp-route-id="@d.Id" class="btn btn-ghost btn-sm" title="Sửa"><i class="bi bi-pencil-square"></i></a>
+                            <form asp-action="Delete" asp-route-id="@d.Id" method="post" style="display:inline;"
+                                  onsubmit="return confirm('Bạn có chắc muốn xóa phòng ban này?');">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-ghost btn-sm text-error" title="Xóa"><i class="bi bi-trash3"></i></button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

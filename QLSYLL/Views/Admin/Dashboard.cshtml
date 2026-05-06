@@ -1,0 +1,122 @@
+@* Trang Dashboard Admin — sử dụng Bootstrap Icons *@
+@{
+    ViewData["Title"] = "Dashboard";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["ActiveMenu"] = "dashboard";
+    ViewData["Breadcrumb"] = "Dashboard";
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Dashboard</h1>
+        <p class="page-subtitle">Tổng quan hệ thống quản lý sơ yếu lý lịch</p>
+    </div>
+    <div class="d-flex gap-8">
+        <a href="#" class="btn btn-secondary btn-sm">
+            <i class="bi bi-download"></i> Xuất báo cáo
+        </a>
+        <a asp-controller="Resume" asp-action="Create" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-lg"></i> Thêm hồ sơ
+        </a>
+    </div>
+</div>
+
+@* === STAT CARDS === *@
+<div class="stat-cards">
+    @await Html.PartialAsync("_StatCard", new ViewDataDictionary(ViewData) {
+        { "Icon", "bi-people-fill" }, { "Color", "blue" },
+        { "Number", ViewBag.TotalEmployees.ToString() },
+        { "Label", "Tổng nhân viên" },
+        { "Change", "+12 tháng này" }, { "ChangeType", "up" }
+    })
+
+    @await Html.PartialAsync("_StatCard", new ViewDataDictionary(ViewData) {
+        { "Icon", "bi-building" }, { "Color", "green" },
+        { "Number", ViewBag.TotalDepartments.ToString() },
+        { "Label", "Phòng ban" },
+        { "Change", "+1 tháng này" }, { "ChangeType", "up" }
+    })
+
+    @await Html.PartialAsync("_StatCard", new ViewDataDictionary(ViewData) {
+        { "Icon", "bi-megaphone-fill" }, { "Color", "amber" },
+        { "Number", ViewBag.NewAnnouncements.ToString() },
+        { "Label", "Thông báo mới" },
+        { "Change", "Trong tuần" }, { "ChangeType", "" }
+    })
+
+    @await Html.PartialAsync("_StatCard", new ViewDataDictionary(ViewData) {
+        { "Icon", "bi-file-earmark-check" }, { "Color", "red" },
+        { "Number", ViewBag.PendingResumes.ToString() },
+        { "Label", "Hồ sơ chờ duyệt" },
+        { "Change", "Cần xử lý" }, { "ChangeType", "down" }
+    })
+</div>
+
+@* === CONTENT GRID === *@
+<div style="display: grid; grid-template-columns: 3fr 2fr; gap: 24px;">
+
+    <div class="data-table-wrapper">
+        <div class="data-table-header">
+            <h2 class="card-title" style="margin-bottom: 0;">Nhân viên mới nhất</h2>
+            <a asp-controller="Resume" asp-action="Index" class="btn btn-ghost btn-sm">
+                Xem tất cả <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Họ và tên</th>
+                    <th>Phòng ban</th>
+                    <th>Chức vụ</th>
+                    <th>Trạng thái</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var emp in ViewBag.RecentEmployees)
+                {
+                    <tr>
+                        <td>
+                            <div class="d-flex align-center gap-8">
+                                <div class="avatar">@emp.Name.ToString().Substring(0, 1)</div>
+                                <span style="font-weight: 500;">@emp.Name</span>
+                            </div>
+                        </td>
+                        <td>@emp.Department</td>
+                        <td>@emp.Position</td>
+                        <td>
+                            @{
+                                string badgeClass = "badge-success";
+                                string badgeIcon = "bi-check-circle";
+                                if (emp.Status == "Chờ duyệt") { badgeClass = "badge-warning"; badgeIcon = "bi-clock"; }
+                                else if (emp.Status == "Bị khóa") { badgeClass = "badge-error"; badgeIcon = "bi-lock"; }
+                            }
+                            <span class="badge @badgeClass">
+                                <i class="bi @badgeIcon" style="margin-right: 4px;"></i>@emp.Status
+                            </span>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="card">
+        <h2 class="card-title">
+            <i class="bi bi-clock-history" style="margin-right: 8px;"></i>Hoạt động gần đây
+        </h2>
+        <ul class="activity-list">
+            @foreach (var activity in ViewBag.RecentActivities)
+            {
+                <li class="activity-item">
+                    <div class="activity-dot @activity.Color"></div>
+                    <div>
+                        <div class="activity-text">@activity.Text</div>
+                        <div class="activity-time">
+                            <i class="bi bi-clock" style="margin-right: 4px;"></i>@activity.Time
+                        </div>
+                    </div>
+                </li>
+            }
+        </ul>
+    </div>
+</div>

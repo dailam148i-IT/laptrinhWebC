@@ -1,0 +1,41 @@
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    bool showSensitive = ViewBag.ShowSensitive ?? false;
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Danh bạ nội bộ</h1>
+        <p class="page-subtitle">Thông tin liên lạc nhân sự trong công ty</p>
+    </div>
+</div>
+
+<div class="data-table-wrapper">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Họ tên</th><th>Email</th><th>Điện thoại</th><th>Phòng ban</th><th>Chức vụ</th>
+                @if (showSensitive)
+                {
+                    <th>Ngày sinh</th><th>CCCD</th><th>Địa chỉ</th><th>Lương</th><th>Gia đình</th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var item in ViewBag.Contacts)
+        {
+            <tr>
+                <td>@item.FullName</td>
+                <td>@item.Email</td>
+                <td>@item.Phone</td>
+                <td>@item.Department</td>
+                <td>@item.Position</td>
+                @if (showSensitive)
+                {
+                    <td>@item.BirthDate</td><td>@item.IdentityNumber</td><td>@item.Address</td><td>@item.Salary</td><td>@item.FamilyInfo</td>
+                }
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>

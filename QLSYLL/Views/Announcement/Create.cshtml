@@ -1,0 +1,51 @@
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="page-header">
+    <div><h1 class="page-title">Tạo thông báo mới</h1></div>
+    <a asp-action="Index" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Quay lại</a>
+</div>
+
+<div class="card" style="max-width: 800px;">
+    <form asp-action="Create" method="post">
+        @Html.AntiForgeryToken()
+
+        <div class="form-group">
+            <label class="form-label">Tiêu đề <span class="text-error">*</span></label>
+            <input type="text" name="Title" class="form-control" placeholder="Nhập tiêu đề thông báo" required />
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+            <div class="form-group">
+                <label class="form-label">Mức độ ưu tiên</label>
+                <select name="Priority" class="form-control">
+                    <option value="Bình thường">Bình thường</option>
+                    <option value="Quan trọng">Quan trọng</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Trạng thái</label>
+                <select name="Status" class="form-control">
+                    <option value="Bản nháp">Bản nháp</option>
+                    <option value="Đã đăng">Đăng ngay</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Nội dung <span class="text-error">*</span></label>
+            <textarea name="Content" class="form-control editor" rows="8" placeholder="Nhập nội dung thông báo..." required></textarea>
+        </div>
+
+        <div class="d-flex gap-12" style="justify-content: flex-end; margin-top: 24px;">
+            <a asp-action="Index" class="btn btn-secondary">Hủy</a>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Đăng thông báo</button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+    <script>
+        tinymce.init({ selector: '.editor', height: 260, menubar: false });
+    </script>
+}

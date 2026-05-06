@@ -1,0 +1,69 @@
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Quản lý thông báo</h1>
+        <p class="page-subtitle">Danh sách thông báo nội bộ</p>
+    </div>
+    <a asp-action="Create" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Tạo thông báo</a>
+</div>
+
+<div class="data-table-wrapper">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>STT</th>
+                <th>Tiêu đề</th>
+                <th>Người đăng</th>
+                <th>Ngày đăng</th>
+                <th>Mức độ</th>
+                <th>Trạng thái</th>
+                <th style="text-align: center;">Thao tác</th>
+            </tr>
+        </thead>
+        <tbody>
+            @{ int stt = 1; }
+            @foreach (var a in ViewBag.Announcements)
+            {
+                <tr>
+                    <td>@(stt++)</td>
+                    <td style="font-weight: 500;">@a.Title</td>
+                    <td>@a.Author</td>
+                    <td>@a.CreatedAt</td>
+                    <td>
+                        @if (a.Priority == "Quan trọng")
+                        {
+                            <span class="badge badge-error"><i class="bi bi-exclamation-circle" style="margin-right:4px;"></i>Quan trọng</span>
+                        }
+                        else
+                        {
+                            <span class="badge badge-info"><i class="bi bi-info-circle" style="margin-right:4px;"></i>Bình thường</span>
+                        }
+                    </td>
+                    <td>
+                        @if (a.Status == "Đã đăng")
+                        {
+                            <span class="badge badge-success"><i class="bi bi-check-circle" style="margin-right:4px;"></i>Đã đăng</span>
+                        }
+                        else
+                        {
+                            <span class="badge badge-warning"><i class="bi bi-pencil" style="margin-right:4px;"></i>Bản nháp</span>
+                        }
+                    </td>
+                    <td style="text-align: center;">
+                        <div class="d-flex gap-8" style="justify-content: center;">
+                            <a asp-action="Edit" asp-route-id="@a.Id" class="btn btn-ghost btn-sm" title="Sửa"><i class="bi bi-pencil-square"></i></a>
+                            <form asp-action="Delete" asp-route-id="@a.Id" method="post" style="display:inline;"
+                                  onsubmit="return confirm('Bạn có chắc muốn xóa thông báo này?');">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-ghost btn-sm text-error" title="Xóa"><i class="bi bi-trash3"></i></button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
