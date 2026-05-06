@@ -15,32 +15,34 @@
 </div>
 
 <div class="card mb-24">
-        <h2 class="card-title"><i class="bi bi-image" style="margin-right: 8px;"></i>Ảnh nhân viên</h2>
-        <div style="display:flex;justify-content:center;margin-bottom:24px;">
-            <div style="width:180px;padding:20px;border:1px dashed var(--hairline);border-radius:20px;background:var(--surface);text-align:center;">
-                @if (!string.IsNullOrWhiteSpace((string?)r.AvatarPath))
-                {
-                    <img src="@r.AvatarPath" alt="@r.FullName" style="width:112px;height:112px;border-radius:50%;object-fit:cover;display:block;margin:0 auto 12px;" />
-                }
-                else
-                {
-                    <div class="avatar avatar-lg" style="width:112px;height:112px;font-size:2rem;margin:0 auto 12px;">@r.FullName.ToString().Substring(0, 1)</div>
-                }
-                <div style="font-weight:600;">Ảnh nhân viên</div>
-                <div class="text-muted" style="font-size:0.857rem;margin-top:4px;">HR/Admin có thể cập nhật trực tiếp</div>
+    <h2 class="card-title"><i class="bi bi-image" style="margin-right: 8px;"></i>Ảnh nhân viên</h2>
+    <div style="display:flex;justify-content:center;margin-bottom:24px;">
+        <div style="width:180px;padding:20px;border:1px dashed var(--hairline);border-radius:20px;background:var(--surface);text-align:center;">
+            <img id="avatarPreview"
+                 data-original="@(!string.IsNullOrWhiteSpace((string?)r.AvatarPath) ? r.AvatarPath : "")"
+                 src="@(!string.IsNullOrWhiteSpace((string?)r.AvatarPath) ? r.AvatarPath : "")"
+                 alt="@r.FullName"
+                 style="width:112px;height:112px;border-radius:50%;object-fit:cover;display:@(!string.IsNullOrWhiteSpace((string?)r.AvatarPath) ? "block" : "none");margin:0 auto 12px;" />
+            <div id="avatarFallback"
+                 class="avatar avatar-lg"
+                 style="width:112px;height:112px;font-size:2rem;margin:0 auto 12px;display:@(string.IsNullOrWhiteSpace((string?)r.AvatarPath) ? "flex" : "none");">
+                @r.FullName.ToString().Substring(0, 1)
             </div>
+            <div style="font-weight:600;">Ảnh nhân viên</div>
+            <div class="text-muted" style="font-size:0.857rem;margin-top:4px;">HR/Admin có thể cập nhật trực tiếp</div>
         </div>
-        <form asp-action="UploadAvatarForEmployee" asp-route-id="@r.Id" method="post" enctype="multipart/form-data" style="margin-bottom:24px;">
-            @Html.AntiForgeryToken()
-            <div class="d-flex gap-12 align-center">
-                <input type="file" name="avatarFile" class="form-control" accept=".jpg,.jpeg,.png" />
-                <button type="submit" class="btn btn-secondary"><i class="bi bi-upload"></i> Tải ảnh đại diện</button>
-            </div>
-        </form>
     </div>
+    <div class="d-flex gap-12 align-center" style="margin-bottom:24px;">
+        <input id="avatarInput" form="editForm" type="file" name="avatarFile" class="form-control" accept=".jpg,.jpeg,.png" />
+        <button id="avatarClearBtn" type="button" class="btn btn-outline-secondary">
+            <i class="bi bi-x-circle"></i> Bỏ chọn ảnh
+        </button>
+    </div>
+</div>
 
-<form asp-action="Edit" asp-route-id="@r.Id" method="post">
+<form id="editForm" asp-action="Edit" asp-route-id="@r.Id" method="post" enctype="multipart/form-data">
     @Html.AntiForgeryToken()
+    <input type="hidden" id="clearAvatarFlag" name="ClearAvatar" value="false" />
     <div class="card mb-24">
         <h2 class="card-title"><i class="bi bi-person-badge" style="margin-right: 8px;"></i>Thông tin cá nhân</h2>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
@@ -309,3 +311,57 @@
         <p class="text-muted">Chưa có tài liệu đính kèm.</p>
     }
 </div>
+
+<script>
+    (function () {
+        const input = document.getElementById("avatarInput");
+        const preview = document.getElementById("avatarPreview");
+        const fallback = document.getElementById("avatarFallback");
+        const clearBtn = document.getElementById("avatarClearBtn");
+        const clearFlag = document.getElementById("clearAvatarFlag");
+
+        if (!input || !preview || !fallback || !clearBtn || !clearFlag) return;
+
+        const originalSrc = preview.getAttribute("data-original") || "";
+
+        function showEmptyPreview() {
+            preview.src = "";
+            preview.style.display = "none";
+            fallback.style.display = "flex";
+        }
+
+        function showOriginalPreview() {
+            if (originalSrc.trim().length > 0) {
+                preview.src = originalSrc;
+                preview.style.display = "block";
+                fallback.style.display = "none";
+            } else {
+                showEmptyPreview();
+            }
+        }
+
+        input.addEventListener("change", function () {
+            const file = this.files && this.files[0];
+            if (!file) {
+                clearFlag.value = "false";
+                showOriginalPreview();
+                return;
+            }
+
+            clearFlag.value = "false";
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                preview.src = e.target.result;
+                preview.style.display = "block";
+                fallback.style.display = "none";
+            };
+            reader.readAsDataURL(file);
+        });
+
+        clearBtn.addEventListener("click", function () {
+            input.value = "";
+            clearFlag.value = "true";
+            showEmptyPreview();
+        });
+    })();
+</script>

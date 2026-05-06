@@ -27,14 +27,14 @@
         { "Icon", "bi-people-fill" }, { "Color", "blue" },
         { "Number", ViewBag.TotalEmployees.ToString() },
         { "Label", "Tổng nhân viên" },
-        { "Change", "+12 tháng này" }, { "ChangeType", "up" }
+        { "Change", ViewBag.EmployeesChangeText }, { "ChangeType", ViewBag.EmployeesChangeType }
     })
 
     @await Html.PartialAsync("_StatCard", new ViewDataDictionary(ViewData) {
         { "Icon", "bi-building" }, { "Color", "green" },
         { "Number", ViewBag.TotalDepartments.ToString() },
         { "Label", "Phòng ban" },
-        { "Change", "+1 tháng này" }, { "ChangeType", "up" }
+        { "Change", ViewBag.DepartmentsChangeText }, { "ChangeType", ViewBag.DepartmentsChangeType }
     })
 
     @await Html.PartialAsync("_StatCard", new ViewDataDictionary(ViewData) {

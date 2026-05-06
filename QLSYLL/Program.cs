@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using QLSYLL.Infrastructure.Extensions;
 using QLSYLL.Infrastructure.RequestContext;
 using QLSYLL.Infrastructure.Services;
 using QLSYLL.Models;
@@ -69,6 +70,27 @@ public class Program
 
         // Bật Session middleware
         app.UseSession();
+
+        app.Use(async (context, next) =>
+        {
+            if (string.IsNullOrWhiteSpace(context.Session.GetString("UserId")) &&
+                context.Request.Cookies.TryGetValue("remember_me", out var userIdRaw) &&
+                int.TryParse(userIdRaw, out var userId))
+            {
+                using var scope = context.RequestServices.CreateScope();
+                var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                var user = await dbContext.Users
+                    .Include(x => x.Role)
+                    .FirstOrDefaultAsync(x => x.Id == userId && !x.IsDeleted);
+
+                if (user is not null && user.IsActive)
+                {
+                    context.SignIn(user);
+                }
+            }
+
+            await next();
+        });
 
         app.UseAuthorization();
 

@@ -43,10 +43,6 @@
         </select>
         <button type="submit" class="btn btn-secondary btn-sm"><i class="bi bi-funnel"></i> Lọc</button>
         <a asp-action="Index" class="btn btn-ghost btn-sm">Xóa lọc</a>
-        <div class="input-icon-wrapper" style="flex: 1; min-width: 240px;">
-            <i class="bi bi-lightning input-icon"></i>
-            <input type="text" class="form-control" placeholder="AJAX tìm theo kỹ năng..." id="skillSearchInput" style="padding-left: 40px;" />
-        </div>
     </form>
     <div class="text-muted" style="margin-top:12px;">Tổng hồ sơ: @(ViewBag.TotalItems ?? 0)</div>
     <div id="skillSearchResults" class="text-muted" style="margin-top:12px;"></div>

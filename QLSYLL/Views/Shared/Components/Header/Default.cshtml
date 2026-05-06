@@ -6,6 +6,8 @@
     var userRole = ViewBag.UserRole as string ?? "";
     var userInitial = ViewBag.UserInitial as string ?? "U";
     int notifCount = ViewBag.NotificationCount ?? 0;
+    int? userEmployeeId = ViewBag.UserEmployeeId as int?;
+    var notifications = ViewBag.Notifications as IEnumerable<dynamic> ?? Enumerable.Empty<dynamic>();
 }
 
 <header class="top-header">
@@ -29,20 +31,92 @@
     </div>
 
     <div class="header-right">
-        <button class="header-icon-btn" title="Thông báo">
-            <i class="bi bi-bell"></i>
-            @if (notifCount > 0)
-            {
-                <span class="badge-dot"></span>
-            }
-        </button>
+        <div class="header-notification-wrapper" style="position: relative;">
+            <button class="header-icon-btn" title="Thông báo" id="btn-notifications" onclick="toggleNotifications(event)">
+                <i class="bi bi-bell"></i>
+                @if (notifCount > 0)
+                {
+                    <span class="badge-dot"></span>
+                }
+            </button>
 
-        <div class="header-user">
-            <div class="header-avatar">@userInitial</div>
-            <div class="header-user-info">
-                <div class="header-user-name">@userName</div>
-                <div class="header-user-role">@userRole</div>
+            <!-- Dropdown Menu -->
+            <div class="notification-dropdown" id="dropdown-notifications">
+                <div class="notif-header">
+                    <span class="notif-title">Thông báo của bạn</span>
+                    <a asp-controller="Announcement" asp-action="Index" class="notif-link">Xem tất cả</a>
+                </div>
+                <div class="notif-body">
+                    @if (!notifications.Any())
+                    {
+                        <div class="notif-empty">Không có thông báo nào</div>
+                    }
+                    else
+                    {
+                        @foreach (var n in notifications)
+                        {
+                            <div class="notif-item">
+                                <div class="notif-item-header">
+                                    <span class="notif-item-title text-truncate">@n.Title</span>
+                                    @if (n.Priority == "Quan trọng")
+                                    {
+                                        <span class="badge badge-error">
+                                            <i class="bi bi-exclamation-circle" style="margin-right:4px;"></i>Quan trọng
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-info">
+                                            <i class="bi bi-info-circle" style="margin-right:4px;"></i>Bình thường
+                                        </span>
+                                    }
+                                </div>
+                                <div class="notif-item-footer">
+                                    <span class="notif-author"><i class="bi bi-person"></i> @n.Author</span>
+                                    <span class="notif-date"><i class="bi bi-clock"></i> @n.CreatedAt</span>
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
             </div>
         </div>
+
+        @if (userEmployeeId.HasValue)
+        {
+            <a class="header-user" asp-controller="Resume" asp-action="Details" asp-route-id="@userEmployeeId.Value">
+                <div class="header-avatar">@userInitial</div>
+                <div class="header-user-info">
+                    <div class="header-user-name">@userName</div>
+                    <div class="header-user-role">@userRole</div>
+                </div>
+            </a>
+        }
+        else
+        {
+            <div class="header-user">
+                <div class="header-avatar">@userInitial</div>
+                <div class="header-user-info">
+                    <div class="header-user-name">@userName</div>
+                    <div class="header-user-role">@userRole</div>
+                </div>
+            </div>
+        }
     </div>
 </header>
+
+<script>
+    function toggleNotifications(event) {
+        event.stopPropagation();
+        document.getElementById('dropdown-notifications').classList.toggle('show');
+    }
+
+    // Đóng dropdown khi click bên ngoài
+    document.addEventListener('click', function(event) {
+        var dropdown = document.getElementById('dropdown-notifications');
+        var btn = document.getElementById('btn-notifications');
+        if (dropdown && !dropdown.contains(event.target) && !btn.contains(event.target)) {
+            dropdown.classList.remove('show');
+        }
+    });
+</script>

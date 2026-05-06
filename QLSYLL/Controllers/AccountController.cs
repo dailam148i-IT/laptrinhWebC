@@ -52,6 +52,22 @@ namespace QLSYLL.Controllers
             }
 
             HttpContext.SignIn(user);
+
+            if (model.RememberMe)
+            {
+                HttpContext.Response.Cookies.Append("remember_me", user.Id.ToString(), new CookieOptions
+                {
+                    HttpOnly = true,
+                    IsEssential = true,
+                    SameSite = SameSiteMode.Lax,
+                    Expires = DateTimeOffset.UtcNow.AddDays(30)
+                });
+            }
+            else
+            {
+                HttpContext.Response.Cookies.Delete("remember_me");
+            }
+
             await auditLogger.LogAsync("Users", "LOGIN", user.Id.ToString(), newValues: $"{{\"Username\":\"{user.Username}\"}}", userId: user.Id);
 
             TempData["SuccessMessage"] = "Đăng nhập thành công!";
@@ -68,6 +84,8 @@ namespace QLSYLL.Controllers
             }
 
             HttpContext.Session.Clear();
+            HttpContext.Response.Cookies.Delete("remember_me");
+
             TempData["InfoMessage"] = "Bạn đã đăng xuất.";
             return RedirectToAction("Login");
         }
