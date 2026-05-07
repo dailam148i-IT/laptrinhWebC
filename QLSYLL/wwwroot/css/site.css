@@ -983,3 +983,8 @@ p  { margin-bottom: 0.5rem; }
     font-size: 0.8rem;
     color: var(--muted);
 }
+
+.card-center {
+    max-width: 500px;
+    margin: 0 auto;
+}
