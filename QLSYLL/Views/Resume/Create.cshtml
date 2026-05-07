@@ -17,6 +17,28 @@
     @Html.AntiForgeryToken()
 
     <div class="card mb-24">
+        <h2 class="card-title"><i class="bi bi-person-lock" style="margin-right: 8px;"></i>Thông tin tài khoản</h2>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+            <div class="form-group">
+                <label class="form-label">Username <span class="text-error">*</span></label>
+                <input type="text" name="Username" class="form-control" placeholder="nhanvien01" required />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Email tài khoản <span class="text-error">*</span></label>
+                <input type="email" name="AccountEmail" class="form-control" placeholder="ten@congty.vn" required />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Mật khẩu <span class="text-error">*</span></label>
+                <input type="password" name="Password" class="form-control" required />
+            </div>
+            <div class="form-group d-flex align-items-center" style="gap: 8px;">
+                <input type="checkbox" id="IsManager" name="IsManager" value="true" />
+                <label class="form-label" for="IsManager">Là quản lý (gán role Manager và phòng ban)</label>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-24">
         <h2 class="card-title"><i class="bi bi-person-badge" style="margin-right: 8px;"></i>Thông tin cá nhân</h2>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
             <div class="form-group">
