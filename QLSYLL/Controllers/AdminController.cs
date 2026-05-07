@@ -33,16 +33,20 @@ public class AdminController(ApplicationDbContext dbContext) : Controller
             x.Status == "Đã đăng" && x.CreatedAt >= DateTime.UtcNow.AddDays(-30));
         ViewBag.PendingResumes = await dbContext.Employees.CountAsync(x => !x.IsDeleted && x.Status == "Chờ duyệt");
 
-        ViewBag.RecentActivities = await dbContext.AuditLogs
+        var recentLogs = await dbContext.AuditLogs
+            .Include(x => x.User)
             .OrderByDescending(x => x.Timestamp)
             .Take(5)
+            .ToListAsync();
+
+        ViewBag.RecentActivities = recentLogs
             .Select(x => new
             {
                 Color = x.Action == "DELETE" ? "amber" : x.Action == "LOGIN" ? "green" : "blue",
-                Text = $"{x.Action} {x.TableName} #{x.RecordId}",
+                Text = BuildActivityText(x),
                 Time = x.Timestamp.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
             })
-            .ToListAsync();
+            .ToList();
 
         ViewBag.RecentEmployees = await dbContext.Employees
             .Where(x => !x.IsDeleted)
@@ -137,5 +141,41 @@ public class AdminController(ApplicationDbContext dbContext) : Controller
             .ToListAsync();
 
         return View();
+    }
+
+    private static string BuildActivityText(AuditLog log)
+    {
+        var actor = string.IsNullOrWhiteSpace(log.User?.FullName) ? "Hệ thống" : log.User.FullName;
+        var entity = GetVietnameseTableName(log.TableName);
+        var idPart = string.IsNullOrWhiteSpace(log.RecordId) ? string.Empty : $" (ID: {log.RecordId})";
+
+        return log.Action switch
+        {
+            "LOGIN" => $"{actor} đã đăng nhập",
+            "LOGOUT" => $"{actor} đã đăng xuất",
+            "INSERT" => $"{actor} đã thêm mới {entity}{idPart}",
+            "UPDATE" => $"{actor} đã cập nhật {entity}{idPart}",
+            "DELETE" => $"{actor} đã xóa {entity}{idPart}",
+            _ => $"{actor} đã thực hiện {log.Action} trên {entity}{idPart}"
+        };
+    }
+
+    private static string GetVietnameseTableName(string? tableName)
+    {
+        return tableName switch
+        {
+            "Users" => "tài khoản",
+            "Employees" => "nhân viên",
+            "Departments" => "phòng ban",
+            "Positions" => "chức vụ",
+            "Skills" => "kỹ năng",
+            "EmployeeSkills" => "kỹ năng nhân viên",
+            "EmployeeEducations" => "trình độ nhân viên",
+            "FamilyMembers" => "thân nhân",
+            "WorkHistories" => "lịch sử công tác",
+            "EmployeeDocuments" => "tài liệu nhân viên",
+            "Announcements" => "thông báo",
+            _ => tableName ?? "dữ liệu"
+        };
     }
 }

@@ -34,12 +34,27 @@ namespace QLSYLL.Controllers
                 return View(model);
             }
 
-            var user = dbContext.Users
-                .Include(x => x.Role)
-                .AsNoTracking()
-                .FirstOrDefault(x => x.Username == model.Username && !x.IsDeleted);
+            var input = model.Username.Trim();
+            var normalized = input.ToLowerInvariant();
 
-            if (user is null || !PasswordHasher.VerifyPassword(model.Password, user.PasswordHash))
+            var user = await dbContext.Users
+                .Include(x => x.Role)
+                .FirstOrDefaultAsync(x =>
+                    !x.IsDeleted &&
+                    (x.Username.ToLower() == normalized || x.Email.ToLower() == normalized));
+
+            if (user is null)
+            {
+                ModelState.AddModelError("", "Tên đăng nhập hoặc mật khẩu không đúng.");
+                return View(model);
+            }
+
+            var storedHash = (user.PasswordHash ?? string.Empty).Trim();
+            
+            // Xác minh mật khẩu so với hash trong database
+            var passwordOk = PasswordHasher.VerifyPassword(model.Password, storedHash);
+
+            if (!passwordOk)
             {
                 ModelState.AddModelError("", "Tên đăng nhập hoặc mật khẩu không đúng.");
                 return View(model);
@@ -68,10 +83,10 @@ namespace QLSYLL.Controllers
                 HttpContext.Response.Cookies.Delete("remember_me");
             }
 
-            await auditLogger.LogAsync("Users", "LOGIN", user.Id.ToString(), newValues: $"{{\"Username\":\"{user.Username}\"}}", userId: user.Id);
+            await auditLogger.LogAsync("Users", "LOGIN", user.Id.ToString(),
+                newValues: $"{{\"Username\":\"{user.Username}\"}}", userId: user.Id);
 
-            TempData["SuccessMessage"] = "Đăng nhập thành công!";
-            return RedirectToRoleDashboard(user.Role.Code);
+            return RedirectToRoleDashboard(user.Role!.Code);
         }
 
         // GET: /Account/Logout
