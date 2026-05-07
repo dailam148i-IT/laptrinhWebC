@@ -1,5 +1,8 @@
 @{
+    ViewData["Title"] = "Dashboard phòng ban";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["ActiveMenu"] = "dashboard";
+    ViewData["Breadcrumb"] = "Dashboard phòng ban";
 }
 
 <div class="page-header">
@@ -9,23 +12,59 @@
     </div>
 </div>
 
-<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-bottom:24px;">
-    <div class="card"><div class="page-subtitle">Nhân viên phòng tôi</div><div class="page-title">@ViewBag.EmployeeCount</div></div>
-    <div class="card"><div class="page-subtitle">Hồ sơ chờ duyệt</div><div class="page-title">@ViewBag.PendingCount</div></div>
-    <div class="card"><div class="page-subtitle">Thông báo mới</div><div class="page-title">@ViewBag.NewAnnouncements</div></div>
+<div class="stat-cards stat-cards-3">
+    @await Html.PartialAsync("_StatCard", new ViewDataDictionary(ViewData) {
+        { "Icon", "bi-people-fill" }, { "Color", "blue" },
+        { "Number", ViewBag.EmployeeCount.ToString() },
+        { "Label", "Nhân viên phòng tôi" },
+        { "Change", "" }, { "ChangeType", "" }
+    })
+
+    @await Html.PartialAsync("_StatCard", new ViewDataDictionary(ViewData) {
+        { "Icon", "bi-clock" }, { "Color", "amber" },
+        { "Number", ViewBag.PendingCount.ToString() },
+        { "Label", "Hồ sơ chờ duyệt" },
+        { "Change", "" }, { "ChangeType", "" }
+    })
+
+    @await Html.PartialAsync("_StatCard", new ViewDataDictionary(ViewData) {
+        { "Icon", "bi-megaphone-fill" }, { "Color", "green" },
+        { "Number", ViewBag.NewAnnouncements.ToString() },
+        { "Label", "Thông báo mới" },
+        { "Change", "30 ngày" }, { "ChangeType", "" }
+    })
 </div>
 
 <div class="data-table-wrapper">
+    <div class="data-table-header">
+        <h2 class="card-title" style="margin-bottom: 0;">Nhân viên phòng ban</h2>
+    </div>
     <table class="data-table">
-        <thead><tr><th>Họ tên</th><th>Phòng ban</th><th>Chức vụ</th><th>Trạng thái</th></tr></thead>
+        <thead>
+            <tr>
+                <th>Họ tên</th>
+                <th>Phòng ban</th>
+                <th>Chức vụ</th>
+                <th>Trạng thái</th>
+            </tr>
+        </thead>
         <tbody>
         @foreach (var item in ViewBag.DepartmentEmployees)
         {
+            string badgeClass = "badge-success";
+            string badgeIcon = "bi-check-circle";
+            if (item.Status == "Chờ duyệt") { badgeClass = "badge-warning"; badgeIcon = "bi-clock"; }
+            else if (item.Status == "Bị khóa") { badgeClass = "badge-error"; badgeIcon = "bi-lock"; }
+
             <tr>
                 <td>@item.FullName</td>
                 <td>@item.Department</td>
                 <td>@item.Position</td>
-                <td>@item.Status</td>
+                <td>
+                    <span class="badge @badgeClass">
+                        <i class="bi @badgeIcon" style="margin-right: 4px;"></i>@item.Status
+                    </span>
+                </td>
             </tr>
         }
         </tbody>

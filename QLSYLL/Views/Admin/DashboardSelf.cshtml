@@ -1,6 +1,9 @@
 @{
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
     var resume = ViewBag.Resume;
+    ViewData["Title"] = "Dashboard cá nhân";
+    ViewData["ActiveMenu"] = "profile";
+    ViewData["Breadcrumb"] = "Dashboard cá nhân";
 }
 
 <div class="page-header">
@@ -8,24 +11,42 @@
         <h1 class="page-title">Dashboard cá nhân</h1>
         <p class="page-subtitle">@resume.FullName - @resume.Position.Name</p>
     </div>
-    <a asp-controller="Resume" asp-action="SelfEdit" class="btn btn-primary"><i class="bi bi-pencil-square"></i> Cập nhật hồ sơ</a>
+    <a asp-controller="Resume" asp-action="SelfEdit" class="btn btn-primary">
+        <i class="bi bi-pencil-square"></i> Hồ sơ cá nhân
+    </a>
 </div>
 
-<div class="card mb-24">
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-        <div><strong>Phòng ban:</strong> @resume.Department.Name</div>
-        <div><strong>Chức vụ:</strong> @resume.Position.Name</div>
-        <div><strong>Điện thoại:</strong> @resume.Phone</div>
-        <div><strong>Trạng thái hồ sơ:</strong> @resume.Status</div>
+<div class="dashboard-grid">
+    <div class="card">
+        <h2 class="card-title">Thông tin hồ sơ</h2>
+        <div class="d-flex align-center gap-12 mb-16">
+            <div class="avatar avatar-lg">@resume.FullName.ToString().Substring(0, 1)</div>
+            <div>
+                <div style="font-weight:600;color:var(--ink)">@resume.FullName</div>
+                <div class="text-muted">@resume.Department.Name • @resume.Position.Name</div>
+            </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div><strong>Phòng ban:</strong> @resume.Department.Name</div>
+            <div><strong>Chức vụ:</strong> @resume.Position.Name</div>
+            <div><strong>Điện thoại:</strong> @resume.Phone</div>
+            <div><strong>Trạng thái:</strong> @resume.Status</div>
+        </div>
     </div>
-</div>
 
-<div class="card">
-    <h2 class="card-title">Thông báo mới nhất</h2>
-    <ul>
-    @foreach (var item in ViewBag.RecentAnnouncements)
-    {
-        <li><strong>@item.Title</strong> - @item.CreatedAt.ToString("dd/MM/yyyy")</li>
-    }
-    </ul>
+    <div class="card">
+        <h2 class="card-title">Top 5 thông báo mới</h2>
+        <ul class="activity-list">
+        @foreach (var item in ViewBag.RecentAnnouncements)
+        {
+            <li class="activity-item">
+                <div class="activity-dot blue"></div>
+                <div>
+                    <div class="activity-text">@item.Title</div>
+                    <div class="activity-time">@item.CreatedAt.ToString("dd/MM/yyyy")</div>
+                </div>
+            </li>
+        }
+        </ul>
+    </div>
 </div>
