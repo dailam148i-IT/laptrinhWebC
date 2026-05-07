@@ -17,6 +17,7 @@ public class Program
         builder.Services.AddHttpContextAccessor();
         builder.Services.AddScoped<ICurrentRequestContext, HttpCurrentRequestContext>();
         builder.Services.AddScoped<AuditLogger>();
+        builder.Services.AddScoped<IAccountProvisioningService, AccountProvisioningService>();
 
         builder.Services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));

@@ -6,7 +6,7 @@
 <div class="page-header">
     <div>
         <h1 class="page-title">Thêm hồ sơ mới</h1>
-        <p class="page-subtitle">Điền đầy đủ thông tin sơ yếu lý lịch nhân viên</p>
+        <p class="page-subtitle">Điền đầy đủ thông tin sơ yếu lý lịch và khởi tạo tài khoản đăng nhập cho nhân viên.</p>
     </div>
     <a asp-action="Index" class="btn btn-secondary">
         <i class="bi bi-arrow-left"></i> Quay lại
@@ -18,6 +18,9 @@
 
     <div class="card mb-24">
         <h2 class="card-title"><i class="bi bi-person-lock" style="margin-right: 8px;"></i>Thông tin tài khoản</h2>
+        <p class="form-hint" style="margin-bottom: 16px;">
+            Tạo hồ sơ này sẽ đồng thời tạo tài khoản đăng nhập cho nhân viên. Tài khoản quản trị SA/HR không tạo tại đây.
+        </p>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
             <div class="form-group">
                 <label class="form-label">Username <span class="text-error">*</span></label>
@@ -29,9 +32,13 @@
             </div>
             <div class="form-group">
                 <label class="form-label">Mật khẩu <span class="text-error">*</span></label>
-                <input type="password" name="Password" class="form-control" required />
+                <input type="password" name="Password" class="form-control" minlength="6" required />
             </div>
-            <div class="form-group d-flex align-items-center" style="gap: 8px;">
+            <div class="form-group">
+                <label class="form-label">Xác nhận mật khẩu <span class="text-error">*</span></label>
+                <input type="password" name="ConfirmPassword" class="form-control" minlength="6" required />
+            </div>
+            <div class="form-group d-flex align-items-center" style="gap: 8px; grid-column: 1 / -1;">
                 <input type="checkbox" id="IsManager" name="IsManager" value="true" />
                 <label class="form-label" for="IsManager">Là quản lý (gán role Manager và phòng ban)</label>
             </div>

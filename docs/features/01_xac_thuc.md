@@ -4,6 +4,10 @@
 > **Views:** `Login.cshtml`, `ForgotPassword.cshtml`, `ChangePassword.cshtml`  
 > **Actor:** 🔐 SA, 🏢 HR, 👔 MG, 👤 EM (tất cả)
 
+> **Lưu ý quan trọng:** Hệ thống **không có đăng ký công khai**. Tài khoản chỉ được tạo nội bộ:
+> - `SA/HR` tạo tại `UserController`
+> - `Manager/Employee` tạo cùng hồ sơ tại `ResumeController`
+
 ---
 
 ## 1.1 Đăng nhập (Login)
@@ -48,7 +52,7 @@
 - [ ] Xử lý khóa tài khoản sau N lần sai (tùy chọn)
 
 ### Trạng thái code
-⚠️ Hardcoded 2 tài khoản, chỉ phân biệt Admin/Employee.
+✅ Đang dùng DB thật, hash mật khẩu PBKDF2, session/cookie nội bộ và redirect đúng theo 4 role.
 
 ---
 

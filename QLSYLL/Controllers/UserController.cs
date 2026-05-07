@@ -1,23 +1,30 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using QLSYLL.Infrastructure.Auth;
 using QLSYLL.Infrastructure.Extensions;
-using QLSYLL.Infrastructure.Security;
+using QLSYLL.Infrastructure.Services;
 using QLSYLL.Models;
+using QLSYLL.Models.ViewModels;
 
 namespace QLSYLL.Controllers;
 
 [SessionAuthorize(RoleNames.SuperAdmin)]
-public class UserController(ApplicationDbContext dbContext) : Controller
+public class UserController(
+    ApplicationDbContext dbContext,
+    IAccountProvisioningService accountProvisioningService,
+    AuditLogger auditLogger) : Controller
 {
     public async Task<IActionResult> Index()
     {
         ViewData["Title"] = "Quản lý tài khoản";
         ViewData["ActiveMenu"] = "user";
         ViewData["Breadcrumb"] = "Tài khoản";
+
         ViewBag.Users = await dbContext.Users
             .Where(x => !x.IsDeleted)
             .Include(x => x.Role)
+            .Include(x => x.Employee)
             .OrderBy(x => x.CreatedAt)
             .Select(x => new
             {
@@ -27,89 +34,109 @@ public class UserController(ApplicationDbContext dbContext) : Controller
                 x.Email,
                 Role = x.Role.Code,
                 x.IsActive,
-                CreatedAt = x.CreatedAt.ToString("dd/MM/yyyy")
+                CreatedAt = x.CreatedAt.ToString("dd/MM/yyyy"),
+                IsAdminAccount = x.Role.Code == RoleNames.SuperAdmin || x.Role.Code == RoleNames.HrAdmin,
+                AccountType = x.Role.Code == RoleNames.SuperAdmin || x.Role.Code == RoleNames.HrAdmin
+                    ? "Quản trị nội bộ"
+                    : "Gắn với hồ sơ nhân sự",
+                HasEmployeeProfile = x.Employee != null
             })
             .ToListAsync();
+
         return View();
     }
 
     public IActionResult Create()
     {
-        ViewData["Title"] = "Tạo tài khoản mới";
+        PopulateAdminRoles();
+        ViewData["Title"] = "Tạo tài khoản quản trị";
         ViewData["ActiveMenu"] = "user";
         ViewData["Breadcrumb"] = "Tạo mới";
         ViewData["ParentPage"] = "Tài khoản";
-        ViewBag.Roles = GetAssignableRoles();
-        return View();
+        return View(new AdminAccountCreateViewModel());
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(IFormCollection form)
+    public async Task<IActionResult> Create(AdminAccountCreateViewModel model)
     {
-        var role = form["Role"].ToString();
-        if (!GetAssignableRoles().Contains(role))
+        PopulateAdminRoles();
+        ViewData["Title"] = "Tạo tài khoản quản trị";
+        ViewData["ActiveMenu"] = "user";
+        ViewData["Breadcrumb"] = "Tạo mới";
+        ViewData["ParentPage"] = "Tài khoản";
+
+        if (!ModelState.IsValid)
         {
-            return Forbid();
+            return View(model);
         }
 
-        var username = form["Username"]!.ToString().Trim();
-        var email = form["Email"]!.ToString().Trim();
-        if (await dbContext.Users.AnyAsync(x => x.Username == username || x.Email == email))
+        var result = await accountProvisioningService.CreateAdminAccountAsync(model);
+        if (!result.Succeeded)
         {
-            TempData["ErrorMessage"] = "Tên đăng nhập hoặc email đã tồn tại.";
-            return RedirectToAction(nameof(Create));
+            ModelState.AddModelError(string.Empty, result.ErrorMessage!);
+            return View(model);
         }
 
-        dbContext.Users.Add(new User
-        {
-            Username = username,
-            FullName = form["FullName"]!,
-            Email = email,
-            RoleId = GetRoleId(role),
-            PasswordHash = PasswordHasher.HashPassword(form["Password"]!),
-            IsActive = true,
-            CreatedAt = DateTime.UtcNow
-        });
-
-        await dbContext.SaveChangesAsync();
-        TempData["SuccessMessage"] = "Tạo tài khoản thành công!";
+        TempData["SuccessMessage"] = "Tạo tài khoản quản trị thành công!";
         return RedirectToAction(nameof(Index));
     }
 
     public async Task<IActionResult> Edit(int id)
     {
-        var user = await dbContext.Users.Include(x => x.Role).FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted);
-        if (user == null) return NotFound();
+        var user = await dbContext.Users
+            .Include(x => x.Role)
+            .FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted);
 
-        ViewData["Title"] = "Chỉnh sửa tài khoản";
+        if (user is null || !RoleNames.IsAdminRole(user.Role.Code))
+        {
+            return NotFound();
+        }
+
+        PopulateAdminRoles();
+        ViewData["Title"] = "Chỉnh sửa tài khoản quản trị";
         ViewData["ActiveMenu"] = "user";
         ViewData["Breadcrumb"] = "Chỉnh sửa";
         ViewData["ParentPage"] = "Tài khoản";
-        ViewBag.UserItem = user;
-        ViewBag.Roles = GetAssignableRoles(user.Role.Code);
-        return View();
+
+        return View(new AdminAccountEditViewModel
+        {
+            Id = user.Id,
+            Username = user.Username,
+            FullName = user.FullName,
+            Email = user.Email,
+            Role = user.Role.Code
+        });
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int id, IFormCollection form)
+    public async Task<IActionResult> Edit(int id, AdminAccountEditViewModel model)
     {
-        var user = await dbContext.Users.Include(x => x.Role).FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted);
-        if (user == null) return NotFound();
+        PopulateAdminRoles();
+        ViewData["Title"] = "Chỉnh sửa tài khoản quản trị";
+        ViewData["ActiveMenu"] = "user";
+        ViewData["Breadcrumb"] = "Chỉnh sửa";
+        ViewData["ParentPage"] = "Tài khoản";
 
-        var role = form["Role"].ToString();
-        if (!GetAssignableRoles(user.Role.Code).Contains(role))
+        if (id != model.Id)
         {
-            return Forbid();
+            return NotFound();
         }
 
-        user.FullName = form["FullName"]!;
-        user.Email = form["Email"]!;
-        user.RoleId = GetRoleId(role);
-        user.UpdatedAt = DateTime.UtcNow;
-        await dbContext.SaveChangesAsync();
-        TempData["SuccessMessage"] = "Cập nhật tài khoản thành công!";
+        if (!ModelState.IsValid)
+        {
+            return View(model);
+        }
+
+        var result = await accountProvisioningService.UpdateAdminAccountAsync(id, model);
+        if (!result.Succeeded)
+        {
+            ModelState.AddModelError(string.Empty, result.ErrorMessage!);
+            return View(model);
+        }
+
+        TempData["SuccessMessage"] = "Cập nhật tài khoản quản trị thành công!";
         return RedirectToAction(nameof(Index));
     }
 
@@ -119,8 +146,20 @@ public class UserController(ApplicationDbContext dbContext) : Controller
     public async Task<IActionResult> Delete(int id)
     {
         var currentUserId = HttpContext.GetCurrentUserId();
-        var user = await dbContext.Users.FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted);
-        if (user == null) return NotFound();
+        var user = await dbContext.Users
+            .Include(x => x.Role)
+            .FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted);
+
+        if (user is null)
+        {
+            return NotFound();
+        }
+
+        if (!RoleNames.IsAdminRole(user.Role.Code))
+        {
+            TempData["ErrorMessage"] = "Tài khoản gắn với hồ sơ nhân sự chỉ được vô hiệu hóa, không xóa tại màn hình này.";
+            return RedirectToAction(nameof(Index));
+        }
 
         if (currentUserId == id)
         {
@@ -128,7 +167,8 @@ public class UserController(ApplicationDbContext dbContext) : Controller
             return RedirectToAction(nameof(Index));
         }
 
-        if (user.RoleId == GetRoleId(RoleNames.SuperAdmin) && await dbContext.Users.CountAsync(x => x.RoleId == GetRoleId(RoleNames.SuperAdmin) && !x.IsDeleted) == 1)
+        if (user.Role.Code == RoleNames.SuperAdmin &&
+            await dbContext.Users.CountAsync(x => x.RoleId == user.RoleId && !x.IsDeleted) == 1)
         {
             TempData["ErrorMessage"] = "Không thể xóa SuperAdmin cuối cùng.";
             return RedirectToAction(nameof(Index));
@@ -136,8 +176,16 @@ public class UserController(ApplicationDbContext dbContext) : Controller
 
         user.IsDeleted = true;
         user.IsActive = false;
+        user.UpdatedAt = DateTime.UtcNow;
         await dbContext.SaveChangesAsync();
-        TempData["SuccessMessage"] = "Xóa tài khoản thành công!";
+        await auditLogger.LogAsync(
+            "Users",
+            "DELETE",
+            user.Id.ToString(),
+            newValues: "{\"SoftDeleted\":true}",
+            userId: currentUserId);
+
+        TempData["SuccessMessage"] = "Xóa tài khoản quản trị thành công!";
         return RedirectToAction(nameof(Index));
     }
 
@@ -145,12 +193,13 @@ public class UserController(ApplicationDbContext dbContext) : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ToggleActive(int id)
     {
-        var user = await dbContext.Users.FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted);
-        if (user == null) return NotFound();
+        var result = await accountProvisioningService.ToggleActiveAsync(id);
+        if (!result.Succeeded)
+        {
+            TempData["ErrorMessage"] = result.ErrorMessage;
+            return RedirectToAction(nameof(Index));
+        }
 
-        user.IsActive = !user.IsActive;
-        user.UpdatedAt = DateTime.UtcNow;
-        await dbContext.SaveChangesAsync();
         TempData["SuccessMessage"] = "Cập nhật trạng thái tài khoản thành công!";
         return RedirectToAction(nameof(Index));
     }
@@ -159,30 +208,36 @@ public class UserController(ApplicationDbContext dbContext) : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ResetPassword(int id)
     {
-        var user = await dbContext.Users.FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted);
-        if (user == null) return NotFound();
+        var result = await accountProvisioningService.ResetPasswordAsync(id);
+        if (!result.Succeeded)
+        {
+            TempData["ErrorMessage"] = result.ErrorMessage;
+            return RedirectToAction(nameof(Index));
+        }
 
-        var newPassword = $"Reset@{Random.Shared.Next(100000, 999999)}";
-        user.PasswordHash = PasswordHasher.HashPassword(newPassword);
-        user.UpdatedAt = DateTime.UtcNow;
-        await dbContext.SaveChangesAsync();
-        TempData["SuccessMessage"] = $"Mật khẩu mới của {user.Username}: {newPassword}";
+        var user = await dbContext.Users
+            .Where(x => x.Id == id)
+            .Select(x => x.Username)
+            .FirstOrDefaultAsync();
+
+        TempData["SuccessMessage"] = $"Mật khẩu mới của {user}: {result.GeneratedPassword}";
         return RedirectToAction(nameof(Index));
     }
 
-    private List<string> GetAssignableRoles(string? currentRole = null)
+    private void PopulateAdminRoles()
     {
-        return [RoleNames.SuperAdmin, RoleNames.HrAdmin, RoleNames.Manager, RoleNames.Employee];
+        ViewBag.Roles = RoleNames.AdminRoles
+            .Select(role => new SelectListItem(GetRoleLabel(role), role))
+            .ToList();
     }
 
-    private static int GetRoleId(string roleCode)
+    private static string GetRoleLabel(string roleCode)
     {
         return roleCode switch
         {
-            RoleNames.SuperAdmin => 1,
-            RoleNames.HrAdmin => 2,
-            RoleNames.Manager => 3,
-            _ => 4
+            RoleNames.SuperAdmin => "SA - Super Admin",
+            RoleNames.HrAdmin => "HR - Nhân sự",
+            _ => roleCode
         };
     }
 }

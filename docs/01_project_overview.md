@@ -4,7 +4,7 @@
 ---
 
 ## 1. Giới thiệu
-Hệ thống Quản lý Sơ yếu lý lịch (QLSYLL) là một ứng dụng web được xây dựng trên nền tảng **ASP.NET MVC**, cho phép tổ chức/doanh nghiệp quản lý hồ sơ sơ yếu lý lịch của nhân viên một cách tập trung, hiệu quả và chuyên nghiệp.
+Hệ thống Quản lý Sơ yếu lý lịch (QLSYLL) là một ứng dụng web được xây dựng trên nền tảng **ASP.NET Core MVC (.NET 10)**, cho phép tổ chức/doanh nghiệp quản lý hồ sơ sơ yếu lý lịch của nhân viên một cách tập trung, hiệu quả và chuyên nghiệp.
 
 ## 2. Mục tiêu dự án
 - **Số hóa** quy trình quản lý sơ yếu lý lịch, thay thế hồ sơ giấy truyền thống.
@@ -12,6 +12,7 @@ Hệ thống Quản lý Sơ yếu lý lịch (QLSYLL) là một ứng dụng web
 - Đảm bảo **phân quyền rõ ràng** giữa Quản trị viên (Admin) và Nhân viên (Employee).
 - Hỗ trợ **tìm kiếm, lọc, phân trang** nhanh chóng trên lượng dữ liệu lớn.
 - Tích hợp **Web API RESTful** để mở rộng và kết nối với các hệ thống khác.
+- Chuẩn hóa quy trình tạo tài khoản nội bộ: `SA/HR` tạo riêng trong module `User`, còn `Manager/Employee` được tạo cùng hồ sơ nhân sự trong module `Resume`.
 
 ## 3. Phạm vi dự án
 ### 3.1 Trong phạm vi (In Scope)
@@ -31,14 +32,14 @@ Hệ thống Quản lý Sơ yếu lý lịch (QLSYLL) là một ứng dụng web
 ## 4. Công nghệ sử dụng
 | Thành phần    | Công nghệ                          |
 |---------------|-------------------------------------|
-| Back-end      | ASP.NET MVC 5 (.NET Framework 4.8) |
-| ORM           | Entity Framework (Code First)       |
+| Back-end      | ASP.NET Core MVC (.NET 10)         |
+| ORM           | Entity Framework Core 10           |
 | Cơ sở dữ liệu| SQL Server                          |
 | Front-end     | HTML5, CSS3, Bootstrap 5, jQuery    |
 | AJAX          | jQuery AJAX                         |
 | Rich Editor   | CKEditor 5 hoặc TinyMCE            |
 | Validation    | Data Annotations + jQuery Validate  |
-| API           | ASP.NET Web API (RESTful)           |
+| API           | Controller-based JSON endpoints nội bộ |
 
 ## 5. Đội ngũ phát triển
 | STT | Họ và tên | Vai trò | Nhiệm vụ chính |

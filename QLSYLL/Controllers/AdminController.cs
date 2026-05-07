@@ -42,7 +42,12 @@ public class AdminController(ApplicationDbContext dbContext) : Controller
         ViewBag.RecentActivities = recentLogs
             .Select(x => new
             {
-                Color = x.Action == "DELETE" ? "amber" : x.Action == "LOGIN" ? "green" : "blue",
+                Color = x.Action switch
+                {
+                    "DELETE" or "ACCOUNT_LOCK" => "amber",
+                    "LOGIN" or "ACCOUNT_CREATE" or "ACCOUNT_UNLOCK" => "green",
+                    _ => "blue"
+                },
                 Text = BuildActivityText(x),
                 Time = x.Timestamp.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
             })
@@ -153,6 +158,10 @@ public class AdminController(ApplicationDbContext dbContext) : Controller
         {
             "LOGIN" => $"{actor} đã đăng nhập",
             "LOGOUT" => $"{actor} đã đăng xuất",
+            "ACCOUNT_CREATE" => $"{actor} đã tạo tài khoản {entity}{idPart}",
+            "ACCOUNT_LOCK" => $"{actor} đã khóa {entity}{idPart}",
+            "ACCOUNT_UNLOCK" => $"{actor} đã mở khóa {entity}{idPart}",
+            "RESET_PASSWORD" => $"{actor} đã đặt lại mật khẩu cho {entity}{idPart}",
             "INSERT" => $"{actor} đã thêm mới {entity}{idPart}",
             "UPDATE" => $"{actor} đã cập nhật {entity}{idPart}",
             "DELETE" => $"{actor} đã xóa {entity}{idPart}",

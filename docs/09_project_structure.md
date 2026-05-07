@@ -1,7 +1,13 @@
 # CẤU TRÚC THƯ MỤC DỰ ÁN (CHI TIẾT)
-## Hệ thống Quản lý Sơ yếu lý lịch — ASP.NET MVC 5
+## Hệ thống Quản lý Sơ yếu lý lịch — ASP.NET Core MVC (.NET 10)
 
 ---
+
+> **Ghi chú cập nhật:** Tài liệu gốc bên dưới được viết theo cấu trúc MVC 5. Hiện trạng code đang chạy là **ASP.NET Core MVC trên .NET 10** với `Program.cs`, `appsettings.json`, EF Core và session auth tự dựng.
+>
+> Hai luồng tạo tài khoản chuẩn hiện tại:
+> - `UserController.Create/Edit`: chỉ dành cho tài khoản quản trị `SA/HR`
+> - `ResumeController.Create`: tạo đồng thời `User + Employee` cho `Manager/Employee`
 
 ## 1. Cấu trúc tổng quan
 
@@ -25,10 +31,8 @@ D:\Manhinh\QLNS\
 └── QLSYLL\                                  # 📁 Project chính (MVC Web Application)
     │
     ├── QLSYLL.csproj                        # File cấu hình project
-    ├── Web.config                           # Cấu hình app (connection string, appSettings)
-    ├── Global.asax                          # Application_Start, đăng ký Route/Filter
-    ├── Global.asax.cs
-    ├── packages.config                      # Danh sách NuGet packages
+    ├── Program.cs                           # Entry point, DI, middleware, route mapping
+    ├── appsettings.json                     # Connection string, logging, API settings
     │
     ├── App_Start\                           # ⚙️ Cấu hình khởi động
     │   ├── RouteConfig.cs                   #   Đăng ký URL routes cho MVC
@@ -76,17 +80,13 @@ D:\Manhinh\QLNS\
     │   ├── HomeController.cs                #   Trang chủ, AccessDenied, Error
     │   ├── AccountController.cs             #   Đăng nhập, Đăng xuất, Đổi mật khẩu
     │   ├── AdminController.cs               #   Dashboard Admin
-    │   ├── EmployeeController.cs            #   Dashboard Employee, MyResume, Directory
-    │   ├── ResumeController.cs              #   CRUD Hồ sơ SYLL (Admin)
-    │   ├── UserController.cs                #   CRUD Tài khoản (Admin)
+    │   ├── ResumeController.cs              #   CRUD Hồ sơ SYLL + tạo account Manager/Employee
+    │   ├── UserController.cs                #   Quản trị account SA/HR, khóa/mở khóa, reset password
     │   ├── DepartmentController.cs          #   CRUD Phòng ban (Admin)
     │   ├── PositionController.cs            #   CRUD Chức vụ (Admin)
     │   ├── AnnouncementController.cs        #   CRUD Thông báo (Admin)
-    │   │
-    │   └── Api\                             #   🌐 Web API Controllers (RESTful)
-    │       ├── ResumesApiController.cs       #     GET/POST/PUT/DELETE /api/resumes
-    │       ├── DepartmentsApiController.cs   #     GET /api/departments
-    │       └── PositionsApiController.cs     #     GET /api/positions
+    │   ├── ContactController.cs             #   Danh bạ nội bộ
+    │   └── AuditLogController.cs            #   Nhật ký thao tác
     │
     ├── Views\                               # 🖼️ Tầng giao diện (Razor Views)
     │   │
@@ -125,8 +125,9 @@ D:\Manhinh\QLNS\
     │   │   └── Details.cshtml               #     Xem chi tiết hồ sơ
     │   │
     │   ├── User\
-    │   │   ├── Index.cshtml                 #     Danh sách tài khoản
-    │   │   └── Create.cshtml                #     Form tạo tài khoản
+    │   │   ├── Index.cshtml                 #     Danh sách tài khoản + phân loại admin/employee-linked
+    │   │   ├── Create.cshtml                #     Form tạo tài khoản quản trị SA/HR
+    │   │   └── Edit.cshtml                  #     Form sửa tài khoản quản trị SA/HR
     │   │
     │   ├── Department\
     │   │   ├── Index.cshtml                 #     Danh sách phòng ban

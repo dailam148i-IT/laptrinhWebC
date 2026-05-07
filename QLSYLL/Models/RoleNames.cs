@@ -8,4 +8,16 @@ public static class RoleNames
     public const string Employee = "Employee";
 
     public static readonly string[] All = [SuperAdmin, HrAdmin, Manager, Employee];
+    public static readonly string[] AdminRoles = [SuperAdmin, HrAdmin];
+    public static readonly string[] EmployeeLinkedRoles = [Manager, Employee];
+
+    public static bool IsAdminRole(string? roleCode)
+    {
+        return roleCode is SuperAdmin or HrAdmin;
+    }
+
+    public static bool IsEmployeeLinkedRole(string? roleCode)
+    {
+        return roleCode is Manager or Employee;
+    }
 }

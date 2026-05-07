@@ -2,7 +2,7 @@
 
 > **Controller:** `UserController`  
 > **Views:** `Index.cshtml`, `Create.cshtml`, `Edit.cshtml`  
-> **Actor:** 🔐 SA (full + phân quyền Role), 🏢 HR (hạn chế)
+> **Actor:** 🔐 SA (quản trị tài khoản quản trị)
 
 ---
 
@@ -10,18 +10,19 @@
 
 | Hành động | 🔐 SA | 🏢 HR | 👔 MG | 👤 EM |
 |-----------|:------:|:------:|:------:|:------:|
-| Xem danh sách tài khoản | ✅ | ✅ | ❌ | ❌ |
-| Tạo tài khoản | ✅ | ✅ (hạn chế) | ❌ | ❌ |
-| Chỉnh sửa tài khoản | ✅ | ✅ (hạn chế) | ❌ | ❌ |
+| Xem danh sách tài khoản | ✅ | ❌ | ❌ | ❌ |
+| Tạo tài khoản quản trị `SA/HR` | ✅ | ❌ | ❌ | ❌ |
+| Chỉnh sửa tài khoản quản trị `SA/HR` | ✅ | ❌ | ❌ | ❌ |
 | Xóa tài khoản | ✅ | ❌ | ❌ | ❌ |
 | Phân quyền Role | ✅ | ❌ | ❌ | ❌ |
-| Khóa/Mở khóa | ✅ | ✅ | ❌ | ❌ |
-| Reset mật khẩu | ✅ | ✅ | ❌ | ❌ |
+| Khóa/Mở khóa | ✅ | ❌ | ❌ | ❌ |
+| Reset mật khẩu | ✅ | ❌ | ❌ | ❌ |
 
-### Hạn chế quan trọng của HR Admin
-- ❌ **KHÔNG được gán Role = SuperAdmin** cho bất kỳ ai.
-- ❌ **KHÔNG được xóa tài khoản** (chỉ SA mới xóa).
-- HR chỉ tạo/sửa tài khoản với Role: `Employee`, `Manager`, `HRAdmin`.
+### Quy ước tạo tài khoản hiện tại
+- `UserController.Create/Edit` chỉ xử lý tài khoản quản trị nội bộ `SA` và `HR`.
+- Tài khoản `Manager` hoặc `Employee` không được tạo ở module này.
+- Tài khoản `Manager/Employee` chỉ được tạo cùng hồ sơ nhân sự tại `ResumeController.Create`.
+- Trong danh sách `/User`, tài khoản `Manager/Employee` chỉ hỗ trợ `Khóa/Mở khóa` và `ResetPassword`; không `Edit/Delete` tại đây.
 
 ---
 
@@ -41,15 +42,15 @@
 | `CreatedAt` | Ngày tạo |
 
 ### Logic phân quyền
-- **SA:** Thấy tất cả tài khoản + đầy đủ hành động.
-- **HR:** Thấy tất cả, nhưng nút Xóa bị ẩn, dropdown Role không có "SuperAdmin".
+- **SA:** Thấy tất cả tài khoản. Tài khoản `SA/HR` có đầy đủ hành động; tài khoản `Manager/Employee` chỉ có `Khóa/Mở khóa` và `ResetPassword`.
+- **HR:** ❌ Không truy cập module này trong trạng thái code hiện tại.
 - **MG / EM:** ❌ 403.
 
 ---
 
-## 7.2 Tạo tài khoản (Create)
+## 7.2 Tạo tài khoản quản trị (Create)
 
-### Actor: 🔐 SA, 🏢 HR (hạn chế)
+### Actor: 🔐 SA
 
 ### Dữ liệu đầu vào
 | Trường | Bắt buộc | Mô tả |
@@ -59,11 +60,12 @@
 | Xác nhận MK | ✅ | Phải khớp |
 | Họ tên | ✅ | Tên hiển thị |
 | Email | ✅ | Email hợp lệ, unique |
-| Vai trò | ✅ | Dropdown: xem hạn chế bên dưới |
+| Vai trò | ✅ | Chỉ cho phép `SA` hoặc `HR` |
 
 ### Logic phân quyền dropdown Role
-- **SA tạo:** Dropdown có tất cả 4 Role.
-- **HR tạo:** Dropdown chỉ có: Employee, Manager, HRAdmin. **KHÔNG có SuperAdmin.**
+- Dropdown chỉ có `SA` và `HR`.
+- Nếu sửa HTML để gửi `Manager` hoặc `Employee`, server sẽ từ chối.
+- Tài khoản nhân sự phải tạo từ `Resume/Create`.
 
 ### Yêu cầu DB
 - [ ] Kiểm tra trùng `Username`, `Email`
@@ -73,13 +75,14 @@
 
 ---
 
-## 7.3 Chỉnh sửa tài khoản (Edit)
+## 7.3 Chỉnh sửa tài khoản quản trị (Edit)
 
-### Actor: 🔐 SA, 🏢 HR (hạn chế)
+### Actor: 🔐 SA
 
 ### Logic phân quyền
-- **HR:** Không được thay đổi Role của tài khoản có Role = SuperAdmin.
-- **SA:** Full quyền chỉnh sửa.
+- Chỉ cho sửa tài khoản `SA/HR`.
+- Không cho mở màn hình chỉnh sửa đối với tài khoản `Manager/Employee`.
+- Không cho đổi nhóm role giữa `SA/HR` và `Manager/Employee`.
 - Không cập nhật password ở đây (dùng Reset MK riêng).
 
 ### Yêu cầu DB
@@ -128,9 +131,11 @@ Admin/HR đặt lại mật khẩu cho user khi họ quên mà không qua email.
 4. Ghi AuditLog.
 
 ### Trạng thái code
-❌ Chưa có Action riêng cho ResetPassword.
+✅ Đã có action riêng `ResetPassword`.
 
 ---
 
 ### Trạng thái code chung
-⚠️ UI CRUD có, hardcoded 5 tài khoản, chỉ 2 Role (Admin/Employee), chưa phân quyền.
+✅ Đã tách rõ 2 luồng:
+- Tài khoản quản trị `SA/HR` tạo trong `User`
+- Tài khoản `Manager/Employee` tạo cùng hồ sơ trong `Resume`

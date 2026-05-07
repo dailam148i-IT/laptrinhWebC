@@ -2,13 +2,15 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using QLSYLL.Infrastructure.Auth;
 using QLSYLL.Infrastructure.Extensions;
-using QLSYLL.Infrastructure.Security;
+using QLSYLL.Infrastructure.Services;
 using QLSYLL.Models;
 
 namespace QLSYLL.Controllers;
 
 [SessionAuthorize(RoleNames.SuperAdmin, RoleNames.HrAdmin, RoleNames.Manager, RoleNames.Employee)]
-public class ResumeController(ApplicationDbContext dbContext) : Controller
+public class ResumeController(
+    ApplicationDbContext dbContext,
+    IAccountProvisioningService accountProvisioningService) : Controller
 {
     public async Task<IActionResult> Index(string? search, int? departmentId, string? status, int page = 1, int pageSize = 5)
     {
@@ -108,6 +110,7 @@ public class ResumeController(ApplicationDbContext dbContext) : Controller
         var username = form["Username"].ToString().Trim();
         var accountEmail = form["AccountEmail"].ToString().Trim();
         var password = form["Password"].ToString();
+        var confirmPassword = form["ConfirmPassword"].ToString();
         var isManager = ParseBool(form["IsManager"]);
 
         if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(accountEmail) || string.IsNullOrWhiteSpace(password))
@@ -116,107 +119,65 @@ public class ResumeController(ApplicationDbContext dbContext) : Controller
             return RedirectToAction(nameof(Create));
         }
 
-        if (await dbContext.Users.AnyAsync(x => x.Username == username || x.Email == accountEmail))
+        if (!string.Equals(password, confirmPassword, StringComparison.Ordinal))
         {
-            TempData["ErrorMessage"] = "Tên đăng nhập hoặc email đã tồn tại.";
+            TempData["ErrorMessage"] = "Xác nhận mật khẩu không khớp.";
             return RedirectToAction(nameof(Create));
         }
 
-        var departmentId = ParseInt(form["DepartmentId"]);
-        if (isManager && departmentId <= 0)
+        var employee = new Employee
         {
-            TempData["ErrorMessage"] = "Vui lòng chọn phòng ban trước khi gán là quản lý.";
+            FullName = form["FullName"]!,
+            BirthDate = ParseDateOnly(form["BirthDate"]),
+            Gender = form["Gender"]!,
+            AliasName = NormalizeOptionalString(form["AliasName"]),
+            BirthPlace = NormalizeOptionalString(form["BirthPlace"]),
+            Hometown = NormalizeOptionalString(form["Hometown"]),
+            PermanentAddress = NormalizeOptionalString(form["PermanentAddress"]),
+            CurrentAddress = NormalizeOptionalString(form["CurrentAddress"]),
+            Phone = form["Phone"]!,
+            PersonalEmail = NormalizeOptionalString(form["PersonalEmail"]),
+            CompanyEmail = NormalizeOptionalString(form["CompanyEmail"]),
+            IdentityNumber = NormalizeOptionalString(form["IdentityNumber"]),
+            IdentityIssuedDate = ParseNullableDateOnly(form["IdentityIssuedDate"]),
+            IdentityIssuedPlace = NormalizeOptionalString(form["IdentityIssuedPlace"]),
+            MaritalStatus = NormalizeOptionalString(form["MaritalStatus"]),
+            Ethnicity = NormalizeOptionalString(form["Ethnicity"]),
+            Religion = NormalizeOptionalString(form["Religion"]),
+            TaxCode = NormalizeOptionalString(form["TaxCode"]),
+            SocialInsuranceNumber = NormalizeOptionalString(form["SocialInsuranceNumber"]),
+            BankAccountNumber = NormalizeOptionalString(form["BankAccountNumber"]),
+            BankName = NormalizeOptionalString(form["BankName"]),
+            BankBranch = NormalizeOptionalString(form["BankBranch"]),
+            DepartmentId = ParseInt(form["DepartmentId"]),
+            PositionId = ParseInt(form["PositionId"]),
+            JoinDate = ParseDateOnly(form["JoinDate"]),
+            YouthUnionJoinDate = ParseNullableDateOnly(form["YouthUnionJoinDate"]),
+            YouthUnionJoinPlace = NormalizeOptionalString(form["YouthUnionJoinPlace"]),
+            CommunistPartyJoinDate = ParseNullableDateOnly(form["CommunistPartyJoinDate"]),
+            CommunistPartyJoinPlace = NormalizeOptionalString(form["CommunistPartyJoinPlace"]),
+            CommunistPartyStatus = NormalizeOptionalString(form["CommunistPartyStatus"]),
+            Status = "Chờ duyệt",
+            Salary = 10000000,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var result = await accountProvisioningService.CreateEmployeeAccountWithProfileAsync(
+            employee,
+            username,
+            accountEmail,
+            password,
+            isManager,
+            employeeId => SaveEducationAndSkillsAsync(employeeId, form));
+
+        if (!result.Succeeded)
+        {
+            TempData["ErrorMessage"] = result.ErrorMessage;
             return RedirectToAction(nameof(Create));
         }
 
-        var roleCode = isManager ? RoleNames.Manager : RoleNames.Employee;
-        var roleId = await GetRoleIdAsync(roleCode);
-        if (roleId == 0)
-        {
-            TempData["ErrorMessage"] = "Không tìm thấy role hợp lệ.";
-            return RedirectToAction(nameof(Create));
-        }
-
-        await using var transaction = await dbContext.Database.BeginTransactionAsync();
-        try
-        {
-            var user = new User
-            {
-                Username = username,
-                FullName = form["FullName"]!,
-                Email = accountEmail,
-                RoleId = roleId,
-                PasswordHash = PasswordHasher.HashPassword(password),
-                IsActive = true,
-                CreatedAt = DateTime.UtcNow
-            };
-
-            var employee = new Employee
-            {
-                User = user,
-                FullName = form["FullName"]!,
-                BirthDate = ParseDateOnly(form["BirthDate"]),
-                Gender = form["Gender"]!,
-                AliasName = NormalizeOptionalString(form["AliasName"]),
-                BirthPlace = NormalizeOptionalString(form["BirthPlace"]),
-                Hometown = NormalizeOptionalString(form["Hometown"]),
-                PermanentAddress = NormalizeOptionalString(form["PermanentAddress"]),
-                CurrentAddress = NormalizeOptionalString(form["CurrentAddress"]),
-                Phone = form["Phone"]!,
-                PersonalEmail = NormalizeOptionalString(form["PersonalEmail"]),
-                CompanyEmail = NormalizeOptionalString(form["CompanyEmail"]),
-                IdentityNumber = NormalizeOptionalString(form["IdentityNumber"]),
-                IdentityIssuedDate = ParseNullableDateOnly(form["IdentityIssuedDate"]),
-                IdentityIssuedPlace = NormalizeOptionalString(form["IdentityIssuedPlace"]),
-                MaritalStatus = NormalizeOptionalString(form["MaritalStatus"]),
-                Ethnicity = NormalizeOptionalString(form["Ethnicity"]),
-                Religion = NormalizeOptionalString(form["Religion"]),
-                TaxCode = NormalizeOptionalString(form["TaxCode"]),
-                SocialInsuranceNumber = NormalizeOptionalString(form["SocialInsuranceNumber"]),
-                BankAccountNumber = NormalizeOptionalString(form["BankAccountNumber"]),
-                BankName = NormalizeOptionalString(form["BankName"]),
-                BankBranch = NormalizeOptionalString(form["BankBranch"]),
-                DepartmentId = departmentId,
-                PositionId = ParseInt(form["PositionId"]),
-                JoinDate = ParseDateOnly(form["JoinDate"]),
-                YouthUnionJoinDate = ParseNullableDateOnly(form["YouthUnionJoinDate"]),
-                YouthUnionJoinPlace = NormalizeOptionalString(form["YouthUnionJoinPlace"]),
-                CommunistPartyJoinDate = ParseNullableDateOnly(form["CommunistPartyJoinDate"]),
-                CommunistPartyJoinPlace = NormalizeOptionalString(form["CommunistPartyJoinPlace"]),
-                CommunistPartyStatus = NormalizeOptionalString(form["CommunistPartyStatus"]),
-                Status = "Chờ duyệt",
-                Salary = 10000000,
-                CreatedAt = DateTime.UtcNow
-            };
-
-            dbContext.Users.Add(user);
-            dbContext.Employees.Add(employee);
-            await dbContext.SaveChangesAsync();
-
-            await SaveEducationAndSkillsAsync(employee.Id, form);
-
-            if (isManager)
-            {
-                var department = await dbContext.Departments.FirstOrDefaultAsync(x => x.Id == departmentId && !x.IsDeleted);
-                if (department == null)
-                {
-                    throw new InvalidOperationException("Không tìm thấy phòng ban để gán quản lý.");
-                }
-
-                department.ManagerId = user.Id;
-                await dbContext.SaveChangesAsync();
-            }
-
-            await transaction.CommitAsync();
-            TempData["SuccessMessage"] = "Thêm hồ sơ mới thành công!";
-            return RedirectToAction(nameof(Index));
-        }
-        catch
-        {
-            await transaction.RollbackAsync();
-            TempData["ErrorMessage"] = "Không thể tạo hồ sơ. Vui lòng thử lại.";
-            return RedirectToAction(nameof(Create));
-        }
+        TempData["SuccessMessage"] = "Thêm hồ sơ mới thành công!";
+        return RedirectToAction(nameof(Index));
     }
 
     [SessionAuthorize(RoleNames.SuperAdmin, RoleNames.HrAdmin)]
